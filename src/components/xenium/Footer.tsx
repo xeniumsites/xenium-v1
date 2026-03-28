@@ -40,10 +40,10 @@ export default function Footer() {
           <div>
             <p className="text-sm font-semibold mb-4 uppercase tracking-widest text-muted-foreground">Connect</p>
             <div className="flex gap-3">
-              <a href="mailto:hello@xenium.co" className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-xenium-violet-mid/40 transition-colors">
+              <a href="mailto:xeniumgifts@gmail.com" className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-xenium-violet-mid/40 transition-colors">
                 <Mail size={16} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-xenium-violet-mid/40 transition-colors">
+              <a href="https://www.instagram.com/xenium_gifts?igsh=cnFqcno1cG4wd3Np" className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-xenium-violet-mid/40 transition-colors">
                 <Instagram size={16} />
               </a>
             </div>
