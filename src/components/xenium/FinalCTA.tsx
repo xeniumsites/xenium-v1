@@ -7,7 +7,7 @@ export default function FinalCTA() {
   const scrollTo = (href: string) => document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <section className="py-32 px-6 relative overflow-hidden" ref={ref}>
+    <section className="py-40 px-6 relative overflow-hidden" ref={ref}>
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-xenium-violet-deep/15 blur-[120px]" />
         <div className="absolute top-1/2 left-1/3 w-[400px] h-[400px] rounded-full bg-xenium-rose/10 blur-[100px]" />

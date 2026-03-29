@@ -1,13 +1,94 @@
 import { motion } from "framer-motion";
 import { Sparkles, Play } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+
+const typewriterMessages = [
+  "Happy 10th Anniversary, my love...",
+  "Happy Birthday, Mom...",
+  "Will you marry me?",
+  "In loving memory of Dad...",
+  "Thank you for 25 years of service...",
+  "To the best friend I ever had...",
+];
+
+function useTypewriter(messages: string[], typeSpeed = 60, deleteSpeed = 35, pauseTime = 2200) {
+  const [display, setDisplay] = useState("");
+  const [msgIndex, setMsgIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const current = messages[msgIndex];
+    let timeout: ReturnType<typeof setTimeout>;
+
+    if (!isDeleting && charIndex < current.length) {
+      timeout = setTimeout(() => {
+        setDisplay(current.slice(0, charIndex + 1));
+        setCharIndex(charIndex + 1);
+      }, typeSpeed);
+    } else if (!isDeleting && charIndex === current.length) {
+      timeout = setTimeout(() => setIsDeleting(true), pauseTime);
+    } else if (isDeleting && charIndex > 0) {
+      timeout = setTimeout(() => {
+        setDisplay(current.slice(0, charIndex - 1));
+        setCharIndex(charIndex - 1);
+      }, deleteSpeed);
+    } else if (isDeleting && charIndex === 0) {
+      setIsDeleting(false);
+      setMsgIndex((msgIndex + 1) % messages.length);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [charIndex, isDeleting, msgIndex, messages, typeSpeed, deleteSpeed, pauseTime]);
+
+  return display;
+}
+
+// Generate random stars
+function generateStars(count: number) {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    size: Math.random() * 2.5 + 1,
+    delay: Math.random() * 6,
+    duration: Math.random() * 4 + 3,
+    driftX: (Math.random() - 0.5) * 40,
+    driftY: (Math.random() - 0.5) * 30,
+  }));
+}
+
+const stars = generateStars(50);
 
 export default function Hero() {
+  const typedText = useTypewriter(typewriterMessages);
+
   const scrollTo = (href: string) => {
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Floating stars */}
+      <div className="absolute inset-0 pointer-events-none">
+        {stars.map((star) => (
+          <div
+            key={star.id}
+            className="absolute rounded-full bg-foreground/60 animate-star-float"
+            style={{
+              left: `${star.left}%`,
+              top: `${star.top}%`,
+              width: `${star.size}px`,
+              height: `${star.size}px`,
+              animationDelay: `${star.delay}s`,
+              animationDuration: `${star.duration}s`,
+              '--drift-x': `${star.driftX}px`,
+              '--drift-y': `${star.driftY}px`,
+            } as React.CSSProperties}
+          />
+        ))}
+      </div>
+
       {/* Background glows */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-xenium-violet-deep/20 blur-[120px] animate-glow-pulse" />
@@ -63,7 +144,7 @@ export default function Hero() {
           </button>
         </motion.div>
 
-        {/* Device mockup hint */}
+        {/* Device mockup with typewriter */}
         <motion.div
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
@@ -79,8 +160,9 @@ export default function Hero() {
               </div>
               <div className="space-y-4 text-left">
                 <div className="h-3 w-1/3 rounded-full bg-xenium-violet-mid/30" />
-                <div className="font-display text-2xl md:text-3xl text-foreground/80 italic">
-                  "Happy 10th Anniversary, my love..."
+                <div className="font-display text-2xl md:text-3xl text-foreground/80 italic min-h-[2.5rem]">
+                  "{typedText}
+                  <span className="animate-typewriter-cursor">|</span>"
                 </div>
                 <div className="h-2 w-2/3 rounded-full bg-xenium-rose/20" />
                 <div className="h-2 w-1/2 rounded-full bg-xenium-amber/15" />
