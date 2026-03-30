@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Sparkles, Play } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 
 const typewriterMessages = [
   "Happy 10th Anniversary, my love...",
@@ -44,7 +44,6 @@ function useTypewriter(messages: string[], typeSpeed = 60, deleteSpeed = 35, pau
   return display;
 }
 
-// Generate random stars
 function generateStars(count: number) {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
@@ -102,7 +101,7 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          <p className="text-xenium-amber font-sans text-sm tracking-[0.3em] uppercase mb-6">
+          <p className="text-xenium-amber font-sans text-sm tracking-[0.3em] uppercase mb-8">
             Premium Digital Gifting
           </p>
           <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-light leading-[1.1] mb-8">
@@ -118,37 +117,45 @@ export default function Hero() {
           transition={{ duration: 1, delay: 0.3 }}
           className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed font-light"
         >
-          Xenium helps you turn life's most meaningful moments into beautifully crafted digital
-          experiences — designed to be shared, remembered, and felt.
+          Xenium helps you turn birthdays, anniversaries, proposals, tributes, and life's most meaningful moments into beautifully crafted digital experiences.
         </motion.p>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6"
         >
           <button
             onClick={() => scrollTo("#create")}
-            className="gradient-full text-foreground font-semibold px-8 py-4 rounded-full text-base hover:opacity-90 transition-all glow-violet flex items-center gap-2"
+            className="gradient-full text-foreground font-semibold px-8 py-4 rounded-full text-base hover:opacity-90 transition-all glow-violet flex items-center gap-2 hover:shadow-[0_0_60px_-10px_hsl(var(--xenium-violet-deep)/0.6)]"
           >
             <Sparkles size={18} />
             Create Your Xenium
           </button>
           <button
             onClick={() => scrollTo("#examples")}
-            className="glass-card text-foreground font-medium px-8 py-4 rounded-full text-base hover:bg-muted/30 transition-all flex items-center gap-2"
+            className="glass-card text-foreground font-medium px-8 py-4 rounded-full text-base hover:bg-muted/30 transition-all flex items-center gap-2 hover:border-xenium-violet-mid/40"
           >
             <Play size={16} />
             View Sample Experience
           </button>
         </motion.div>
 
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.9 }}
+          className="text-muted-foreground/60 text-xs tracking-wide"
+        >
+          Made for birthdays, anniversaries, proposals, memorials, love stories, retirements, and more.
+        </motion.p>
+
         {/* Device mockup with typewriter */}
         <motion.div
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.9 }}
+          transition={{ duration: 1, delay: 1.1 }}
           className="mt-20 relative"
         >
           <div className="glass-card p-1 max-w-3xl mx-auto rounded-2xl glow-violet overflow-hidden">

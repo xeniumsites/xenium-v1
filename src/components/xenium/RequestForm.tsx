@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ArrowLeft, Sparkles, Check, AlertCircle } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles, Check, AlertCircle, Home, RefreshCw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const occasions = ["Birthday", "Anniversary", "Proposal", "Memorial / Tribute", "Love Story", "Retirement", "Corporate / Employee", "Other"];
 const moods = ["Cinematic & Grand", "Warm & Nostalgic", "Romantic & Dreamy", "Fun & Playful", "Elegant & Minimal", "Bold & Modern"];
 const featureOptions = ["Photo Gallery", "Video Embed", "Timeline", "Written Messages", "Background Music", "Animated Text", "Guest Messages", "QR Code"];
+const deadlineOptions = ["Within 2 days", "Within 1 week", "Within 2 weeks", "Flexible"];
 
 interface FormData {
   occasion: string;
@@ -32,10 +34,19 @@ const initial: FormData = {
   deadline: "",
 };
 
+const stepHelpers = [
+  "Choose the moment you want us to bring to life.",
+  "Tell us who this experience is meant for.",
+  "So we know where to reach you and who's behind the story.",
+  "Help us understand how it should feel and what it should include.",
+  "Tell us what makes this moment meaningful.",
+];
+
 export default function RequestForm() {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>(initial);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
 
   const totalSteps = 5;
@@ -62,7 +73,7 @@ export default function RequestForm() {
         break;
       case 4:
         if (!form.story.trim()) errs.push("Please share a brief story or context.");
-        if (!form.deadline.trim()) errs.push("Please provide a deadline.");
+        if (!form.deadline) errs.push("Please select a timeline.");
         break;
     }
     return errs;
@@ -70,41 +81,32 @@ export default function RequestForm() {
 
   const next = () => {
     const errs = validate();
-    if (errs.length > 0) {
-      setErrors(errs);
-      return;
-    }
+    if (errs.length > 0) { setErrors(errs); return; }
     setErrors([]);
     setStep((s) => Math.min(s + 1, totalSteps - 1));
   };
+
   const prev = () => { setErrors([]); setStep((s) => Math.max(s - 1, 0)); };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const errs = validate();
-    if (errs.length > 0) {
-      setErrors(errs);
-      return;
-    }
+    if (errs.length > 0) { setErrors(errs); return; }
     setErrors([]);
+    setSubmitting(true);
 
-    const subject = encodeURIComponent(`New Xenium Request — ${form.occasion} for ${form.recipientName}`);
-    const body = encodeURIComponent(
-      `XENIUM REQUEST\n` +
-      `══════════════════════\n\n` +
-      `Occasion: ${form.occasion}\n` +
-      `Recipient: ${form.recipientName}\n` +
-      `Relationship: ${form.recipientRelation}\n\n` +
-      `Sender: ${form.senderName}\n` +
-      `Email: ${form.senderEmail}\n` +
-      `Phone: ${form.senderPhone}\n\n` +
-      `Mood: ${form.mood}\n` +
-      `Features: ${form.features.join(", ")}\n\n` +
-      `Story / Context:\n${form.story}\n\n` +
-      `Deadline: ${form.deadline}\n`
-    );
+    try {
+      const { error } = await supabase.functions.invoke('submit-xenium-request', {
+        body: form,
+      });
 
-    window.open(`mailto:xeniumgifts@gmail.com?subject=${subject}&body=${body}`, "_self");
-    setSubmitted(true);
+      if (error) throw error;
+      setSubmitted(true);
+    } catch (err) {
+      console.error('Submit error:', err);
+      setErrors(["Something went wrong. Please try again."]);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const toggleFeature = (f: string) =>
@@ -113,12 +115,11 @@ export default function RequestForm() {
       features: prev.features.includes(f) ? prev.features.filter((x) => x !== f) : [...prev.features, f],
     }));
 
-  const inputClass = "w-full bg-muted/30 border border-border rounded-xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-xenium-violet-mid/60 focus:ring-1 focus:ring-xenium-violet-mid/30 transition-all text-sm";
-  const errorInputClass = "border-destructive/60 focus:border-destructive focus:ring-destructive/30";
+  const inputClass = "w-full bg-muted/30 border border-border rounded-xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-xenium-violet-mid/50 focus:ring-1 focus:ring-xenium-violet-mid/20 transition-all text-sm";
 
   if (submitted) {
     return (
-      <section id="create" className="py-40 px-6">
+      <section id="create" className="py-44 px-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -127,10 +128,24 @@ export default function RequestForm() {
           <div className="w-20 h-20 rounded-full gradient-full flex items-center justify-center mx-auto mb-8">
             <Check size={36} className="text-foreground" />
           </div>
-          <h3 className="font-display text-4xl font-medium mb-4">Your Xenium is on its way.</h3>
-          <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Your email client should have opened with your request details. Please send the email to complete your submission. We'll be in touch within 24 hours.
+          <h3 className="font-display text-3xl md:text-4xl font-medium mb-4">Your Xenium request has been received.</h3>
+          <p className="text-muted-foreground max-w-md mx-auto leading-relaxed mb-10">
+            We've received your story and details. We'll reach out to you shortly via email with the next steps.
           </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              onClick={() => document.querySelector("#home")?.scrollIntoView({ behavior: "smooth" })}
+              className="glass-card text-foreground font-medium px-6 py-3 rounded-full text-sm hover:bg-muted/30 transition-all flex items-center gap-2 hover:border-xenium-violet-mid/40"
+            >
+              <Home size={16} /> Return to Home
+            </button>
+            <button
+              onClick={() => { setSubmitted(false); setForm(initial); setStep(0); }}
+              className="gradient-full text-foreground font-semibold px-6 py-3 rounded-full text-sm hover:opacity-90 transition-all flex items-center gap-2"
+            >
+              <RefreshCw size={16} /> Create Another Request
+            </button>
+          </div>
         </motion.div>
       </section>
     );
@@ -145,7 +160,7 @@ export default function RequestForm() {
           <button
             key={o}
             onClick={() => setForm({ ...form, occasion: o })}
-            className={`px-5 py-2.5 rounded-full text-sm border transition-all ${
+            className={`px-5 py-2.5 rounded-full text-sm border transition-all duration-300 ${
               form.occasion === o
                 ? "gradient-full text-foreground border-transparent glow-violet"
                 : "border-border text-muted-foreground hover:border-xenium-violet-mid/40 hover:text-foreground"
@@ -158,7 +173,7 @@ export default function RequestForm() {
     </div>,
 
     // Step 1: Recipient
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-muted-foreground mb-2">Recipient's name *</label>
         <input
@@ -166,7 +181,7 @@ export default function RequestForm() {
           placeholder="e.g. Sarah"
           value={form.recipientName}
           onChange={(e) => setForm({ ...form, recipientName: e.target.value })}
-          className={`${inputClass} ${!form.recipientName.trim() && errors.length ? errorInputClass : ""}`}
+          className={inputClass}
           maxLength={100}
         />
       </div>
@@ -177,14 +192,14 @@ export default function RequestForm() {
           placeholder="e.g. Partner, Mother, Best Friend, Manager"
           value={form.recipientRelation}
           onChange={(e) => setForm({ ...form, recipientRelation: e.target.value })}
-          className={`${inputClass} ${!form.recipientRelation.trim() && errors.length ? errorInputClass : ""}`}
+          className={inputClass}
           maxLength={100}
         />
       </div>
     </div>,
 
     // Step 2: Sender details
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-muted-foreground mb-2">Your name *</label>
         <input
@@ -192,7 +207,7 @@ export default function RequestForm() {
           placeholder="Your full name"
           value={form.senderName}
           onChange={(e) => setForm({ ...form, senderName: e.target.value })}
-          className={`${inputClass} ${!form.senderName.trim() && errors.length ? errorInputClass : ""}`}
+          className={inputClass}
           maxLength={100}
         />
       </div>
@@ -203,7 +218,7 @@ export default function RequestForm() {
           placeholder="you@email.com"
           value={form.senderEmail}
           onChange={(e) => setForm({ ...form, senderEmail: e.target.value })}
-          className={`${inputClass} ${!form.senderEmail.trim() && errors.length ? errorInputClass : ""}`}
+          className={inputClass}
           maxLength={255}
         />
       </div>
@@ -214,7 +229,7 @@ export default function RequestForm() {
           placeholder="+91 98765 43210"
           value={form.senderPhone}
           onChange={(e) => setForm({ ...form, senderPhone: e.target.value })}
-          className={`${inputClass} ${!form.senderPhone.trim() && errors.length ? errorInputClass : ""}`}
+          className={inputClass}
           maxLength={20}
         />
       </div>
@@ -229,7 +244,7 @@ export default function RequestForm() {
             <button
               key={m}
               onClick={() => setForm({ ...form, mood: m })}
-              className={`px-5 py-2.5 rounded-full text-sm border transition-all ${
+              className={`px-5 py-2.5 rounded-full text-sm border transition-all duration-300 ${
                 form.mood === m
                   ? "gradient-full text-foreground border-transparent"
                   : "border-border text-muted-foreground hover:border-xenium-violet-mid/40 hover:text-foreground"
@@ -247,7 +262,7 @@ export default function RequestForm() {
             <button
               key={f}
               onClick={() => toggleFeature(f)}
-              className={`px-5 py-2.5 rounded-full text-sm border transition-all ${
+              className={`px-5 py-2.5 rounded-full text-sm border transition-all duration-300 ${
                 form.features.includes(f)
                   ? "gradient-violet-rose text-foreground border-transparent"
                   : "border-border text-muted-foreground hover:border-xenium-rose/40 hover:text-foreground"
@@ -261,7 +276,7 @@ export default function RequestForm() {
     </div>,
 
     // Step 4: Story & Deadline
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-muted-foreground mb-2">Tell us the story *</label>
         <textarea
@@ -269,20 +284,27 @@ export default function RequestForm() {
           placeholder="Share the context, emotions, memories, or anything you'd like us to know..."
           value={form.story}
           onChange={(e) => setForm({ ...form, story: e.target.value })}
-          className={`${inputClass} resize-none ${!form.story.trim() && errors.length ? errorInputClass : ""}`}
+          className={`${inputClass} resize-none`}
           maxLength={2000}
         />
       </div>
       <div>
         <label className="block text-sm font-medium text-muted-foreground mb-2">When do you need it? *</label>
-        <input
-          type="text"
-          placeholder="e.g. Before March 15, 2026"
-          value={form.deadline}
-          onChange={(e) => setForm({ ...form, deadline: e.target.value })}
-          className={`${inputClass} ${!form.deadline.trim() && errors.length ? errorInputClass : ""}`}
-          maxLength={100}
-        />
+        <div className="flex flex-wrap gap-3">
+          {deadlineOptions.map((d) => (
+            <button
+              key={d}
+              onClick={() => setForm({ ...form, deadline: d })}
+              className={`px-5 py-2.5 rounded-full text-sm border transition-all duration-300 ${
+                form.deadline === d
+                  ? "gradient-full text-foreground border-transparent"
+                  : "border-border text-muted-foreground hover:border-xenium-violet-mid/40 hover:text-foreground"
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
       </div>
     </div>,
   ];
@@ -290,15 +312,16 @@ export default function RequestForm() {
   const stepLabels = ["Occasion", "Recipient", "Your Details", "Mood & Features", "Story"];
 
   return (
-    <section id="create" className="py-40 px-6">
+    <section id="create" className="py-44 px-6">
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-12">
+        <div className="text-center mb-14">
           <p className="text-xenium-amber text-sm tracking-[0.2em] uppercase mb-4">Create</p>
           <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-light">
             Let's bring your<br />
             <span className="italic gradient-text">story to life.</span>
           </h2>
         </div>
+
         <div className="glass-card p-8 md:p-12">
           {/* Progress */}
           <div className="flex items-center gap-1 mb-10">
@@ -312,6 +335,9 @@ export default function RequestForm() {
             ))}
           </div>
 
+          {/* Step helper text */}
+          <p className="text-muted-foreground/70 text-sm italic mb-6">{stepHelpers[step]}</p>
+
           {/* Error display */}
           <AnimatePresence>
             {errors.length > 0 && (
@@ -319,10 +345,10 @@ export default function RequestForm() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mb-6 p-4 rounded-xl border border-destructive/30 bg-destructive/5"
+                className="mb-6 p-4 rounded-xl border border-xenium-rose/20 bg-xenium-rose/5"
               >
                 {errors.map((e, i) => (
-                  <p key={i} className="text-destructive text-sm flex items-center gap-2">
+                  <p key={i} className="text-xenium-rose text-sm flex items-center gap-2">
                     <AlertCircle size={14} /> {e}
                   </p>
                 ))}
@@ -354,18 +380,37 @@ export default function RequestForm() {
             {step < totalSteps - 1 ? (
               <button
                 onClick={next}
-                className="gradient-full text-foreground font-semibold px-8 py-3 rounded-full text-sm hover:opacity-90 transition-all flex items-center gap-2"
+                className="gradient-full text-foreground font-semibold px-8 py-3 rounded-full text-sm hover:opacity-90 transition-all flex items-center gap-2 hover:shadow-[0_0_40px_-10px_hsl(var(--xenium-violet-deep)/0.4)]"
               >
                 Continue <ArrowRight size={16} />
               </button>
             ) : (
               <button
                 onClick={handleSubmit}
-                className="gradient-full text-foreground font-semibold px-8 py-3 rounded-full text-sm hover:opacity-90 transition-all glow-violet flex items-center gap-2"
+                disabled={submitting}
+                className="gradient-full text-foreground font-semibold px-8 py-3 rounded-full text-sm hover:opacity-90 transition-all glow-violet flex items-center gap-2 disabled:opacity-60"
               >
-                <Sparkles size={16} /> Submit Request
+                <Sparkles size={16} /> {submitting ? "Submitting..." : "Submit Request"}
               </button>
             )}
+          </div>
+        </div>
+
+        {/* Trust block */}
+        <div className="mt-16 glass-card p-8 md:p-10">
+          <h3 className="font-display text-2xl font-medium text-center mb-8">What happens next?</h3>
+          <div className="grid sm:grid-cols-2 gap-6">
+            {[
+              { num: "01", text: "We review your request" },
+              { num: "02", text: "We reach out via email" },
+              { num: "03", text: "We collect your memories and media" },
+              { num: "04", text: "We craft your Xenium experience" },
+            ].map((item) => (
+              <div key={item.num} className="flex items-start gap-4">
+                <span className="text-xenium-amber/60 font-display text-2xl font-light">{item.num}</span>
+                <p className="text-muted-foreground text-sm pt-1">{item.text}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
