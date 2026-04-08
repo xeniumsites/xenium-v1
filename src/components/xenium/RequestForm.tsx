@@ -119,7 +119,7 @@ export default function RequestForm() {
 
   if (submitted) {
     return (
-      <section id="create" className="py-44 px-6">
+      <section id="create" className="py-24 px-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -312,7 +312,7 @@ export default function RequestForm() {
   const stepLabels = ["Occasion", "Recipient", "Your Details", "Mood & Features", "Story"];
 
   return (
-    <section id="create" className="py-44 px-6">
+    <section id="create" className="py-24 px-6">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-14">
           <p className="text-xenium-amber text-sm tracking-[0.2em] uppercase mb-4">Create</p>
