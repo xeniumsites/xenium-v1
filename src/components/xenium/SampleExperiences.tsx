@@ -1,5 +1,6 @@
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const samples = [
   {
@@ -8,6 +9,7 @@ const samples = [
     subtitle: "A celebration of memories, love, and everything she means to you.",
     gradient: "from-xenium-violet-deep to-xenium-rose",
     accent: "bg-xenium-rose/20",
+    slug: "birthday",
   },
   {
     title: "10 Years Together",
@@ -15,6 +17,7 @@ const samples = [
     subtitle: "A journey through your moments, milestones, and shared memories.",
     gradient: "from-xenium-rose to-xenium-amber",
     accent: "bg-xenium-amber/20",
+    slug: "anniversary",
   },
   {
     title: "The Proposal Story",
@@ -22,6 +25,7 @@ const samples = [
     subtitle: "A cinematic build-up to the most important question of your life.",
     gradient: "from-xenium-violet-mid to-xenium-violet-deep",
     accent: "bg-xenium-violet-mid/20",
+    slug: "proposal",
   },
   {
     title: "In Loving Memory",
@@ -29,6 +33,7 @@ const samples = [
     subtitle: "A tribute to a life well lived — told through the voices of those who loved them.",
     gradient: "from-xenium-violet-deep/80 to-xenium-rose/60",
     accent: "bg-xenium-violet-deep/15",
+    slug: "memorial",
   },
   {
     title: "A Retirement Tribute",
@@ -36,6 +41,7 @@ const samples = [
     subtitle: "Honoring years of passion, impact, and the legacy left behind.",
     gradient: "from-xenium-amber to-xenium-gold",
     accent: "bg-xenium-gold/15",
+    slug: "retirement",
   },
   {
     title: "Employee Appreciation",
@@ -43,6 +49,7 @@ const samples = [
     subtitle: "Recognizing the people who matter — beyond a certificate.",
     gradient: "from-xenium-violet-mid to-xenium-amber",
     accent: "bg-xenium-amber/15",
+    slug: "corporate",
   },
 ];
 
@@ -50,9 +57,9 @@ export default function SampleExperiences() {
   const { ref, isVisible } = useScrollReveal();
 
   return (
-    <section id="examples" className="py-44 px-6" ref={ref}>
+    <section id="examples" className="py-24 px-6" ref={ref}>
       <div className="max-w-6xl mx-auto">
-        <div className={`text-center mb-20 transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
+        <div className={`text-center mb-14 transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
           <p className="text-xenium-amber text-sm tracking-[0.2em] uppercase mb-4">Examples</p>
           <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-light">
             See what a Xenium<br />
@@ -61,15 +68,15 @@ export default function SampleExperiences() {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {samples.map((s, i) => (
-            <div
+            <Link
+              to={`/experience/${s.slug}`}
               key={i}
-              className={`group cursor-pointer rounded-2xl overflow-hidden transition-all duration-700 hover:scale-[1.02] hover:shadow-[0_12px_50px_-15px_hsl(var(--xenium-violet-deep)/0.35)] ${
+              className={`group cursor-pointer rounded-2xl overflow-hidden transition-all duration-700 hover:scale-[1.02] hover:shadow-[0_12px_50px_-15px_hsl(var(--xenium-violet-deep)/0.35)] block ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
               }`}
               style={{ transitionDelay: `${i * 100}ms` }}
             >
               <div className={`bg-gradient-to-br ${s.gradient} relative`}>
-                {/* Mock visual preview area */}
                 <div className="p-8 pt-10 pb-6">
                   <div className="space-y-3 mb-6">
                     <div className={`h-2 w-2/5 rounded-full ${s.accent}`} />
@@ -82,7 +89,6 @@ export default function SampleExperiences() {
                     </div>
                   </div>
                 </div>
-                {/* Content overlay */}
                 <div className="px-8 pb-8 relative z-10">
                   <span className="inline-block text-[10px] uppercase tracking-[0.15em] text-foreground/50 border border-foreground/20 rounded-full px-3 py-1 mb-3">
                     {s.tag}
@@ -94,7 +100,7 @@ export default function SampleExperiences() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
