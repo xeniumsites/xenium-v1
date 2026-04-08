@@ -12,7 +12,7 @@ export default function WhatIsXenium() {
   const { ref, isVisible } = useScrollReveal();
 
   return (
-    <section className="py-44 px-6" ref={ref}>
+    <section className="py-24 px-6" ref={ref}>
       <div className="max-w-6xl mx-auto">
         <div className={`text-center mb-20 transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
           <p className="text-xenium-amber text-sm tracking-[0.2em] uppercase mb-4">What is Xenium?</p>

@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      xenium_requests: {
+        Row: {
+          created_at: string
+          deadline: string | null
+          features: string[]
+          id: string
+          mood: string
+          occasion: string
+          recipient_name: string
+          recipient_relation: string | null
+          sender_email: string
+          sender_name: string
+          sender_phone: string | null
+          story: string
+        }
+        Insert: {
+          created_at?: string
+          deadline?: string | null
+          features?: string[]
+          id?: string
+          mood: string
+          occasion: string
+          recipient_name: string
+          recipient_relation?: string | null
+          sender_email: string
+          sender_name: string
+          sender_phone?: string | null
+          story: string
+        }
+        Update: {
+          created_at?: string
+          deadline?: string | null
+          features?: string[]
+          id?: string
+          mood?: string
+          occasion?: string
+          recipient_name?: string
+          recipient_relation?: string | null
+          sender_email?: string
+          sender_name?: string
+          sender_phone?: string | null
+          story?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

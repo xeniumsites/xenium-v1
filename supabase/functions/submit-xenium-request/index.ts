@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +23,6 @@ serve(async (req) => {
       });
     }
 
-    // Simple email validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
       return new Response(JSON.stringify({ error: 'Invalid email address' }), {
         status: 400,
@@ -30,23 +30,30 @@ serve(async (req) => {
       });
     }
 
-    // Send notification email via Resend-like approach or log for now
-    // For now, we'll construct and log the request, and return success
-    // In production, integrate with an email service
+    // Store in database
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log('New Xenium Request:', JSON.stringify({
+    const { error: dbError } = await supabase.from('xenium_requests').insert({
       occasion,
-      recipientName,
-      recipientRelation,
-      senderName,
-      senderEmail,
-      senderPhone,
+      recipient_name: recipientName,
+      recipient_relation: recipientRelation || null,
+      sender_name: senderName,
+      sender_email: senderEmail,
+      sender_phone: senderPhone || null,
       mood,
       features,
       story,
       deadline,
-      submittedAt: new Date().toISOString(),
-    }));
+    });
+
+    if (dbError) {
+      console.error('DB insert error:', dbError);
+      throw new Error('Failed to save request');
+    }
+
+    console.log('Xenium request saved successfully for:', senderEmail);
 
     return new Response(JSON.stringify({ success: true, message: 'Request received successfully' }), {
       status: 200,
