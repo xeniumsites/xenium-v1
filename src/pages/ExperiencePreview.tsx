@@ -789,7 +789,7 @@ export default function ExperiencePreview() {
                       initial={{ scaleY: 0 }}
                       whileInView={{ scaleY: 1 }}
                       viewport={{ once: true }}
-                      transition={{ delay: i * 0.2, duration: 0.6, origin: "top" }}
+                      transition={{ delay: i * 0.2, duration: 0.6 }}
                     />
                   )}
                 </div>
