@@ -1,11 +1,32 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ArrowLeft, Sparkles, Check, AlertCircle, Home, RefreshCw } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles, Check, AlertCircle, Home, RefreshCw, Cake, Heart, Diamond, Flower2, BookHeart, Sunset, Building2, HelpCircle, Image, Video, Clock, MessageSquareHeart, Music, Type, Users, QrCode } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const occasions = ["Birthday", "Anniversary", "Proposal", "Memorial / Tribute", "Love Story", "Retirement", "Corporate / Employee", "Other"];
+const occasions = [
+  { label: "Birthday", icon: Cake },
+  { label: "Anniversary", icon: Heart },
+  { label: "Proposal", icon: Diamond },
+  { label: "Memorial / Tribute", icon: Flower2 },
+  { label: "Love Story", icon: BookHeart },
+  { label: "Retirement", icon: Sunset },
+  { label: "Corporate / Employee", icon: Building2 },
+  { label: "Other", icon: HelpCircle },
+];
+
 const moods = ["Cinematic & Grand", "Warm & Nostalgic", "Romantic & Dreamy", "Fun & Playful", "Elegant & Minimal", "Bold & Modern"];
-const featureOptions = ["Photo Gallery", "Video Embed", "Timeline", "Written Messages", "Background Music", "Animated Text", "Guest Messages", "QR Code"];
+
+const featureOptions = [
+  { label: "Photo Gallery", icon: Image },
+  { label: "Video Embed", icon: Video },
+  { label: "Timeline", icon: Clock },
+  { label: "Written Messages", icon: MessageSquareHeart },
+  { label: "Background Music", icon: Music },
+  { label: "Animated Text", icon: Type },
+  { label: "Guest Messages", icon: Users },
+  { label: "QR Code", icon: QrCode },
+];
+
 const deadlineOptions = ["Within 2 days", "Within 1 week", "Within 2 weeks", "Flexible"];
 
 interface FormData {
@@ -152,21 +173,22 @@ export default function RequestForm() {
   }
 
   const steps = [
-    // Step 0: Occasion
+    // Step 0: Occasion with icons
     <div className="space-y-4">
       <label className="block text-sm font-medium text-muted-foreground mb-2">What's the occasion? *</label>
-      <div className="flex flex-wrap gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {occasions.map((o) => (
           <button
-            key={o}
-            onClick={() => setForm({ ...form, occasion: o })}
-            className={`px-5 py-2.5 rounded-full text-sm border transition-all duration-300 ${
-              form.occasion === o
-                ? "gradient-full text-foreground border-transparent glow-violet"
-                : "border-border text-muted-foreground hover:border-xenium-violet-mid/40 hover:text-foreground"
+            key={o.label}
+            onClick={() => setForm({ ...form, occasion: o.label })}
+            className={`flex flex-col items-center gap-2.5 px-4 py-5 rounded-xl border transition-all duration-300 ${
+              form.occasion === o.label
+                ? "gradient-full text-foreground border-transparent glow-violet scale-[1.02]"
+                : "border-border text-muted-foreground hover:border-xenium-violet-mid/40 hover:text-foreground hover:bg-muted/10"
             }`}
           >
-            {o}
+            <o.icon size={22} className={form.occasion === o.label ? "text-foreground" : "text-muted-foreground/60"} />
+            <span className="text-xs font-medium">{o.label}</span>
           </button>
         ))}
       </div>
@@ -235,7 +257,7 @@ export default function RequestForm() {
       </div>
     </div>,
 
-    // Step 3: Mood & Features
+    // Step 3: Mood & Features with icons
     <div className="space-y-8">
       <div>
         <label className="block text-sm font-medium text-muted-foreground mb-3">Desired mood *</label>
@@ -257,18 +279,19 @@ export default function RequestForm() {
       </div>
       <div>
         <label className="block text-sm font-medium text-muted-foreground mb-3">Features you'd like * <span className="text-xs text-muted-foreground/60">(select at least one)</span></label>
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {featureOptions.map((f) => (
             <button
-              key={f}
-              onClick={() => toggleFeature(f)}
-              className={`px-5 py-2.5 rounded-full text-sm border transition-all duration-300 ${
-                form.features.includes(f)
-                  ? "gradient-violet-rose text-foreground border-transparent"
-                  : "border-border text-muted-foreground hover:border-xenium-rose/40 hover:text-foreground"
+              key={f.label}
+              onClick={() => toggleFeature(f.label)}
+              className={`flex flex-col items-center gap-2 px-4 py-4 rounded-xl border transition-all duration-300 ${
+                form.features.includes(f.label)
+                  ? "gradient-violet-rose text-foreground border-transparent scale-[1.02]"
+                  : "border-border text-muted-foreground hover:border-xenium-rose/40 hover:text-foreground hover:bg-muted/10"
               }`}
             >
-              {f}
+              <f.icon size={18} className={form.features.includes(f.label) ? "text-foreground" : "text-muted-foreground/50"} />
+              <span className="text-xs font-medium text-center">{f.label}</span>
             </button>
           ))}
         </div>
