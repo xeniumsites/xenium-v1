@@ -13,6 +13,7 @@ const samples = [
     title: "For Her Birthday",
     tag: "Birthday Experience",
     subtitle: "A surprise she'll revisit long after the day is over.",
+    detail: "Built with photos, messages, and music.",
     gradient: "from-xenium-violet-deep to-xenium-rose",
     slug: "birthday",
     image: heroBirthday,
@@ -21,6 +22,7 @@ const samples = [
     title: "10 Years Together",
     tag: "Anniversary Experience",
     subtitle: "A journey through your memories, moments, and milestones.",
+    detail: "Featuring timeline, gallery, and love letters.",
     gradient: "from-xenium-rose to-xenium-amber",
     slug: "anniversary",
     image: heroAnniversary,
@@ -29,6 +31,7 @@ const samples = [
     title: "The Proposal Story",
     tag: "Proposal Experience",
     subtitle: "A cinematic build-up to the most important question of your life.",
+    detail: "Designed as a journey of moments.",
     gradient: "from-xenium-violet-mid to-xenium-violet-deep",
     slug: "proposal",
     image: heroProposal,
@@ -37,6 +40,7 @@ const samples = [
     title: "In Loving Memory",
     tag: "Memorial Tribute",
     subtitle: "A tribute to a life well lived — told through the voices of those who loved them.",
+    detail: "Woven with stories, photos, and tributes.",
     gradient: "from-xenium-violet-deep/80 to-xenium-rose/60",
     slug: "memorial",
     image: heroMemorial,
@@ -45,6 +49,7 @@ const samples = [
     title: "A Retirement Tribute",
     tag: "Retirement Experience",
     subtitle: "Honoring years of passion, impact, and the legacy left behind.",
+    detail: "Crafted with team messages and memories.",
     gradient: "from-xenium-amber to-xenium-gold",
     slug: "retirement",
     image: heroRetirement,
@@ -53,6 +58,7 @@ const samples = [
     title: "Employee Appreciation",
     tag: "Corporate Experience",
     subtitle: "Recognizing the people who matter — beyond a certificate.",
+    detail: "Personalized with milestones and gratitude.",
     gradient: "from-xenium-violet-mid to-xenium-amber",
     slug: "corporate",
     image: heroCorporate,
@@ -106,7 +112,8 @@ export default function SampleExperiences() {
                     {s.tag}
                   </span>
                   <h3 className="font-display text-2xl md:text-3xl font-medium mb-2">{s.title}</h3>
-                  <p className="text-foreground/60 text-sm leading-relaxed mb-4">{s.subtitle}</p>
+                  <p className="text-foreground/60 text-sm leading-relaxed mb-1.5">{s.subtitle}</p>
+                  <p className="text-foreground/35 text-xs leading-relaxed mb-4">{s.detail}</p>
                   <span className="inline-flex items-center gap-1.5 text-xs text-foreground/50 group-hover:text-xenium-amber transition-colors duration-300">
                     Preview Experience <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                   </span>

@@ -91,9 +91,9 @@ export default function Hero() {
 
       {/* Background glows */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-xenium-violet-deep/20 blur-[120px] animate-glow-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-xenium-rose/15 blur-[100px] animate-glow-pulse" style={{ animationDelay: "1.5s" }} />
-        <div className="absolute top-1/2 right-1/3 w-[300px] h-[300px] rounded-full bg-xenium-amber/10 blur-[80px] animate-glow-pulse" style={{ animationDelay: "3s" }} />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-xenium-violet-deep/15 blur-[120px] animate-glow-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-xenium-rose/10 blur-[100px] animate-glow-pulse" style={{ animationDelay: "1.5s" }} />
+        <div className="absolute top-1/2 right-1/3 w-[300px] h-[300px] rounded-full bg-xenium-amber/8 blur-[80px] animate-glow-pulse" style={{ animationDelay: "3s" }} />
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 pt-20">
@@ -108,7 +108,7 @@ export default function Hero() {
               <p className="text-xenium-amber font-sans text-sm tracking-[0.3em] uppercase mb-8">
                 Premium Digital Gifting
               </p>
-              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-light leading-[1.1] mb-8">
+              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-light leading-[1.1] mb-6">
                 Some feelings deserve
                 <br />
                 <span className="gradient-text font-medium italic">more than a text message.</span>
@@ -119,9 +119,18 @@ export default function Hero() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.3 }}
-              className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed font-light"
+              className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 leading-relaxed font-light"
             >
-              Xenium helps you turn birthdays, anniversaries, proposals, tributes, and life's most meaningful moments into beautifully crafted digital experiences.
+              Xenium creates personalized digital experiences for birthdays, proposals, anniversaries, and meaningful life moments.
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.45 }}
+              className="text-sm md:text-base text-foreground/40 italic max-w-xl mx-auto lg:mx-0 mb-10 font-display"
+            >
+              For someone you love. For a moment that matters.
             </motion.p>
 
             <motion.div
@@ -188,7 +197,7 @@ export default function Hero() {
                   />
                   
                   {/* Typewriter overlay at bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/80 to-transparent p-5 pt-10">
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/60 to-transparent p-5 pt-10">
                     <div className="font-display text-sm italic text-foreground/60 min-h-[1.2rem]">
                       "{typedText}<span className="animate-typewriter-cursor">|</span>"
                     </div>

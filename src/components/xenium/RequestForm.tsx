@@ -136,7 +136,7 @@ export default function RequestForm() {
       features: prev.features.includes(f) ? prev.features.filter((x) => x !== f) : [...prev.features, f],
     }));
 
-  const inputClass = "w-full bg-muted/30 border border-border rounded-xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-xenium-violet-mid/50 focus:ring-1 focus:ring-xenium-violet-mid/20 transition-all text-sm";
+  const inputClass = "w-full bg-muted/20 border border-border/60 rounded-xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-xenium-violet-mid/40 focus:ring-2 focus:ring-xenium-violet-mid/10 focus:bg-muted/30 transition-all duration-300 text-sm";
 
   if (submitted) {
     return (
@@ -300,6 +300,7 @@ export default function RequestForm() {
 
     // Step 4: Story & Deadline
     <div className="space-y-6">
+      <p className="text-foreground/30 text-xs italic font-display mb-2">This is where your story begins.</p>
       <div>
         <label className="block text-sm font-medium text-muted-foreground mb-2">Tell us the story *</label>
         <textarea
@@ -343,6 +344,7 @@ export default function RequestForm() {
             Let's bring your<br />
             <span className="italic gradient-text">story to life.</span>
           </h2>
+          <p className="text-muted-foreground/50 text-sm mt-4 font-light">Let's create something meaningful.</p>
         </div>
 
         <div className="glass-card p-8 md:p-12">
@@ -435,7 +437,13 @@ export default function RequestForm() {
               </div>
             ))}
           </div>
+          <p className="text-center text-muted-foreground/40 text-xs mt-6 italic">Most Xeniums are delivered within a few days.</p>
         </div>
+
+        {/* Social proof */}
+        <p className="text-center text-muted-foreground/30 text-xs mt-8 tracking-wide">
+          Created for birthdays, proposals, and life's most meaningful moments. Loved by early users, friends, and first believers.
+        </p>
       </div>
     </section>
   );
