@@ -96,8 +96,13 @@ export default function XeniumPreview() {
                 {/* Opening */}
                 <motion.div
                   animate={{ opacity: activeSection === 0 ? 1 : 0.3 }}
-                  transition={{ duration: 0.6 }}
+                  transition={{ duration: 0.5 }}
                 >
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="px-2 py-0.5 rounded-full bg-xenium-amber/10 border border-xenium-amber/20">
+                      <span className="text-xenium-amber/70 text-[9px] tracking-wider uppercase font-medium">Opening</span>
+                    </div>
+                  </div>
                   <p className="text-xenium-amber/60 text-xs tracking-[0.2em] uppercase mb-3">A Xenium Experience</p>
                   <h3 className="font-display text-3xl md:text-4xl font-light italic text-foreground/90">
                     For Aisha <span className="text-xenium-rose">❤️</span>
@@ -108,12 +113,14 @@ export default function XeniumPreview() {
                 {/* Message section */}
                 <motion.div
                   animate={{ opacity: activeSection === 1 ? 1 : 0.3 }}
-                  transition={{ duration: 0.6 }}
+                  transition={{ duration: 0.5 }}
                   className="glass-card p-6 rounded-xl"
                 >
                   <div className="flex items-center gap-2 mb-3">
+                    <div className="px-2 py-0.5 rounded-full bg-xenium-rose/10 border border-xenium-rose/20">
+                      <span className="text-xenium-rose/70 text-[9px] tracking-wider uppercase font-medium">Message</span>
+                    </div>
                     <MessageSquareHeart size={14} className="text-xenium-rose/60" />
-                    <span className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">Personal Message</span>
                   </div>
                   <p className="font-display text-lg md:text-xl italic text-foreground/70 leading-relaxed">
                     "{activeSection === 1 ? display : previewMessages[0]}"
@@ -127,8 +134,10 @@ export default function XeniumPreview() {
                   transition={{ duration: 0.6 }}
                 >
                   <div className="flex items-center gap-2 mb-3">
+                    <div className="px-2 py-0.5 rounded-full bg-xenium-violet-mid/10 border border-xenium-violet-mid/20">
+                      <span className="text-xenium-violet-mid/70 text-[9px] tracking-wider uppercase font-medium">Gallery</span>
+                    </div>
                     <Image size={14} className="text-xenium-violet-mid/60" />
-                    <span className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">Photo Gallery</span>
                   </div>
                   <div className="flex gap-3">
                     {[1, 2, 3, 4].map((i) => (
@@ -155,8 +164,10 @@ export default function XeniumPreview() {
                   transition={{ duration: 0.6 }}
                 >
                   <div className="flex items-center gap-2 mb-3">
+                    <div className="px-2 py-0.5 rounded-full bg-xenium-amber/10 border border-xenium-amber/20">
+                      <span className="text-xenium-amber/70 text-[9px] tracking-wider uppercase font-medium">Timeline</span>
+                    </div>
                     <Clock size={14} className="text-xenium-amber/60" />
-                    <span className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">Timeline</span>
                   </div>
                   <div className="space-y-3">
                     {["First Date — 2016", "The Trip to Paris — 2018", "Our Wedding — 2020"].map((item, i) => (

@@ -13,10 +13,13 @@ export default function FinalCTA() {
         <div className="absolute top-1/2 left-1/3 w-[400px] h-[400px] rounded-full bg-xenium-rose/10 blur-[100px]" />
       </div>
       <div className={`relative z-10 max-w-3xl mx-auto text-center transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
-        <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-light leading-tight mb-6">
+        <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-light leading-tight mb-4">
           Give them something they'll never expect —<br />
           <span className="italic gradient-text">and never forget.</span>
         </h2>
+        <p className="text-foreground/40 text-base italic font-display mb-3">
+          Because some moments deserve more than just a message.
+        </p>
         <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-10 leading-relaxed">
           Turn your story, your memories, and your meaning into an experience worth keeping forever.
         </p>
@@ -26,7 +29,7 @@ export default function FinalCTA() {
             className="gradient-full text-foreground font-semibold px-8 py-4 rounded-full hover:opacity-90 transition-all glow-violet flex items-center gap-2 hover:shadow-[0_0_60px_-10px_hsl(var(--xenium-violet-deep)/0.6)]"
           >
             <Sparkles size={18} />
-            Start Your Xenium
+            Create Your Experience
           </button>
           <button
             onClick={() => scrollTo("#examples")}
