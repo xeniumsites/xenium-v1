@@ -1,12 +1,10 @@
 import { useScrollReveal } from "@/hooks/useScrollReveal";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Play, Cake, Heart, Gem, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroBirthday from "@/assets/hero-birthday.jpg";
 import heroAnniversary from "@/assets/hero-anniversary.jpg";
 import heroProposal from "@/assets/hero-proposal.jpg";
 import heroMemorial from "@/assets/hero-memorial.jpg";
-import heroRetirement from "@/assets/hero-retirement.jpg";
-import heroCorporate from "@/assets/hero-corporate.jpg";
 
 const samples = [
   {
@@ -14,54 +12,44 @@ const samples = [
     tag: "Birthday Experience",
     subtitle: "A surprise she'll revisit long after the day is over.",
     detail: "Built with photos, messages, and music.",
-    gradient: "from-xenium-violet-deep to-xenium-rose",
+    accent: "from-xenium-violet-deep/70 to-xenium-rose/40",
+    glow: "hsl(var(--xenium-rose) / 0.35)",
     slug: "birthday",
     image: heroBirthday,
+    Icon: Cake,
   },
   {
     title: "10 Years Together",
     tag: "Anniversary Experience",
     subtitle: "A journey through your memories, moments, and milestones.",
     detail: "Featuring timeline, gallery, and love letters.",
-    gradient: "from-xenium-rose to-xenium-amber",
+    accent: "from-xenium-rose/60 to-xenium-amber/40",
+    glow: "hsl(var(--xenium-amber) / 0.3)",
     slug: "anniversary",
     image: heroAnniversary,
+    Icon: Heart,
   },
   {
     title: "The Proposal Story",
     tag: "Proposal Experience",
     subtitle: "A cinematic build-up to the most important question of your life.",
     detail: "Designed as a journey of moments.",
-    gradient: "from-xenium-violet-mid to-xenium-violet-deep",
+    accent: "from-xenium-violet-mid/70 to-xenium-violet-deep/40",
+    glow: "hsl(var(--xenium-violet-mid) / 0.4)",
     slug: "proposal",
     image: heroProposal,
+    Icon: Gem,
   },
   {
     title: "In Loving Memory",
     tag: "Memorial Tribute",
-    subtitle: "A tribute to a life well lived — told through the voices of those who loved them.",
+    subtitle: "A tribute to a life well lived — told by those who loved them.",
     detail: "Woven with stories, photos, and tributes.",
-    gradient: "from-xenium-violet-deep/80 to-xenium-rose/60",
+    accent: "from-xenium-violet-deep/60 to-xenium-rose/30",
+    glow: "hsl(var(--xenium-violet-deep) / 0.35)",
     slug: "memorial",
     image: heroMemorial,
-  },
-  {
-    title: "A Retirement Tribute",
-    tag: "Retirement Experience",
-    subtitle: "Honoring years of passion, impact, and the legacy left behind.",
-    detail: "Crafted with team messages and memories.",
-    gradient: "from-xenium-amber to-xenium-gold",
-    slug: "retirement",
-    image: heroRetirement,
-  },
-  {
-    title: "Employee Appreciation",
-    tag: "Corporate Experience",
-    subtitle: "Recognizing the people who matter — beyond a certificate.",
-    detail: "Personalized with milestones and gratitude.",
-    gradient: "from-xenium-violet-mid to-xenium-amber",
-    slug: "corporate",
-    image: heroCorporate,
+    Icon: Star,
   },
 ];
 
@@ -69,58 +57,97 @@ export default function SampleExperiences() {
   const { ref, isVisible } = useScrollReveal();
 
   return (
-    <section id="examples" className="py-24 px-6" ref={ref}>
+    <section id="examples" className="py-24 px-6 relative" ref={ref}>
       <div className="max-w-6xl mx-auto">
-        <div className={`text-center mb-14 transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
+        <div className={`text-center mb-14 transition-all duration-700 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
           <p className="text-xenium-amber text-sm tracking-[0.2em] uppercase mb-4">Examples</p>
           <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-light">
             See what a Xenium<br />
             <span className="italic gradient-text">looks like.</span>
           </h2>
+          <p className="text-muted-foreground/60 text-sm mt-4 max-w-md mx-auto">
+            Hand-crafted for moments that matter most.
+          </p>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {samples.map((s, i) => (
-            <Link
-              to={`/experience/${s.slug}`}
-              key={i}
-              className={`group cursor-pointer rounded-2xl overflow-hidden transition-all duration-700 hover:scale-[1.03] hover:shadow-[0_12px_60px_-15px_hsl(var(--xenium-violet-deep)/0.4)] block relative ${
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-              }`}
-              style={{ transitionDelay: `${i * 100}ms` }}
-            >
-              {/* Background image */}
-              <div className="relative aspect-[4/5]">
-                <img
-                  src={s.image}
-                  alt={s.title}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  loading="lazy"
-                  width={512}
-                  height={640}
-                />
-                {/* Gradient overlay for readability */}
-                <div className={`absolute inset-0 bg-gradient-to-t ${s.gradient} opacity-50 mix-blend-multiply`} />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-                
-                {/* Hover glow */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{ boxShadow: "inset 0 0 60px -20px hsl(var(--xenium-violet-mid) / 0.3)" }} />
 
-                {/* Content */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 relative z-10">
-                  <span className="inline-block text-[10px] uppercase tracking-[0.15em] text-foreground/50 border border-foreground/20 rounded-full px-3 py-1 mb-3 backdrop-blur-sm">
+        <div className="grid sm:grid-cols-2 gap-6 md:gap-8">
+          {samples.map((s, i) => {
+            const Icon = s.Icon;
+            return (
+              <Link
+                to={`/experience/${s.slug}`}
+                key={s.slug}
+                className={`group relative block rounded-3xl overflow-hidden glass-card transition-all duration-500 ease-out hover:-translate-y-1.5 ${
+                  isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+                style={{
+                  transitionDelay: `${i * 90}ms`,
+                  ['--card-glow' as any]: s.glow,
+                }}
+              >
+                {/* Hover glow ring */}
+                <div
+                  className="absolute -inset-px rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, hsl(var(--xenium-violet-mid) / 0.5), hsl(var(--xenium-rose) / 0.4), hsl(var(--xenium-amber) / 0.4))",
+                    WebkitMask:
+                      "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                    WebkitMaskComposite: "xor",
+                    maskComposite: "exclude",
+                    padding: "1px",
+                  }}
+                />
+                {/* Outer hover shadow */}
+                <div
+                  className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                  style={{ boxShadow: `0 30px 80px -20px ${s.glow}` }}
+                />
+
+                {/* Image area */}
+                <div className="relative aspect-[16/11] overflow-hidden">
+                  <img
+                    src={s.image}
+                    alt={s.title}
+                    loading="lazy"
+                    width={800}
+                    height={550}
+                    className="absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-[1.06] group-hover:brightness-110"
+                  />
+                  <div className={`absolute inset-0 bg-gradient-to-t ${s.accent} mix-blend-soft-light opacity-80`} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
+
+                  {/* Category icon */}
+                  <div className="absolute top-4 left-4 w-10 h-10 rounded-full glass-card flex items-center justify-center backdrop-blur-md">
+                    <Icon size={16} className="text-xenium-amber/90" />
+                  </div>
+
+                  {/* Play badge */}
+                  <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-card backdrop-blur-md opacity-90 group-hover:opacity-100 transition-opacity">
+                    <Play size={10} className="text-xenium-amber fill-xenium-amber" />
+                    <span className="text-[10px] tracking-wider uppercase text-foreground/70">Preview</span>
+                  </div>
+                </div>
+
+                {/* Footer text */}
+                <div className="relative p-6 md:p-7">
+                  <span className="inline-block text-[10px] uppercase tracking-[0.18em] text-xenium-amber/70 mb-3">
                     {s.tag}
                   </span>
-                  <h3 className="font-display text-2xl md:text-3xl font-medium mb-2">{s.title}</h3>
-                  <p className="text-foreground/60 text-sm leading-relaxed mb-1.5">{s.subtitle}</p>
-                  <p className="text-foreground/35 text-xs leading-relaxed mb-4">{s.detail}</p>
-                  <span className="inline-flex items-center gap-1.5 text-xs text-foreground/50 group-hover:text-xenium-amber transition-colors duration-300">
-                    Preview Experience <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                  <h3 className="font-display text-2xl md:text-[1.7rem] font-medium mb-2 leading-snug">{s.title}</h3>
+                  <p className="text-foreground/65 text-sm leading-relaxed mb-1">{s.subtitle}</p>
+                  <p className="text-foreground/35 text-xs leading-relaxed mb-5">{s.detail}</p>
+                  <span className="inline-flex items-center gap-1.5 text-xs text-foreground/55 group-hover:text-xenium-amber transition-colors duration-300">
+                    <span className="relative">
+                      Preview Experience
+                      <span className="absolute left-0 -bottom-0.5 h-px w-0 group-hover:w-full bg-xenium-amber transition-all duration-500" />
+                    </span>
+                    <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform duration-300" />
                   </span>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>

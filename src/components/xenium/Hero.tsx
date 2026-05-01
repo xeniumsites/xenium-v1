@@ -45,21 +45,6 @@ function useTypewriter(messages: string[], typeSpeed = 60, deleteSpeed = 35, pau
   return display;
 }
 
-function generateStars(count: number) {
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    left: Math.random() * 100,
-    top: Math.random() * 100,
-    size: Math.random() * 2.5 + 1,
-    delay: Math.random() * 6,
-    duration: Math.random() * 4 + 3,
-    driftX: (Math.random() - 0.5) * 40,
-    driftY: (Math.random() - 0.5) * 30,
-  }));
-}
-
-const stars = generateStars(50);
-
 export default function Hero() {
   const typedText = useTypewriter(typewriterMessages);
 
@@ -69,28 +54,9 @@ export default function Hero() {
 
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Floating stars */}
-      <div className="absolute inset-0 pointer-events-none">
-        {stars.map((star) => (
-          <div
-            key={star.id}
-            className="absolute rounded-full bg-foreground/60 animate-star-float"
-            style={{
-              left: `${star.left}%`,
-              top: `${star.top}%`,
-              width: `${star.size}px`,
-              height: `${star.size}px`,
-              animationDelay: `${star.delay}s`,
-              animationDuration: `${star.duration}s`,
-              '--drift-x': `${star.driftX}px`,
-              '--drift-y': `${star.driftY}px`,
-            } as React.CSSProperties}
-          />
-        ))}
-      </div>
-
       {/* Background glows */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
+
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-xenium-violet-deep/15 blur-[120px] animate-glow-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-xenium-rose/10 blur-[100px] animate-glow-pulse" style={{ animationDelay: "1.5s" }} />
         <div className="absolute top-1/2 right-1/3 w-[300px] h-[300px] rounded-full bg-xenium-amber/8 blur-[80px] animate-glow-pulse" style={{ animationDelay: "3s" }} />
