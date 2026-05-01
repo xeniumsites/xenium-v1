@@ -1,4 +1,5 @@
 import Navbar from "@/components/xenium/Navbar";
+import StarField from "@/components/xenium/StarField";
 import Hero from "@/components/xenium/Hero";
 import WhatIsXenium from "@/components/xenium/WhatIsXenium";
 import XeniumPreview from "@/components/xenium/XeniumPreview";
@@ -18,7 +19,9 @@ import Footer from "@/components/xenium/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <StarField />
+      <div className="relative" style={{ zIndex: 1 }}>
       <Navbar />
       <Hero />
       <WhatIsXenium />
