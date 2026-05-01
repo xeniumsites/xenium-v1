@@ -39,6 +39,7 @@ const Index = () => {
       <FAQ />
       <FinalCTA />
       <Footer />
+      </div>
     </div>
   );
 };
