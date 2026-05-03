@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "@/assets/xenium-logo.png";
 import { Instagram, Mail } from "lucide-react";
 
@@ -12,9 +12,12 @@ const links = [
 ];
 
 export default function Footer() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const scrollTo = (href: string) => {
-    if (window.location.pathname !== "/") {
-      window.location.href = "/" + href;
+    if (location.pathname !== "/") {
+      navigate("/" + href);
       return;
     }
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Navbar from "@/components/xenium/Navbar";
 import StarField from "@/components/xenium/StarField";
 import Hero from "@/components/xenium/Hero";
@@ -18,6 +19,17 @@ import FinalCTA from "@/components/xenium/FinalCTA";
 import Footer from "@/components/xenium/Footer";
 
 const Index = () => {
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      // Wait for sections to render before scrolling
+      const id = setTimeout(() => {
+        document.querySelector(hash)?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+      return () => clearTimeout(id);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-background relative">
       <StarField />
