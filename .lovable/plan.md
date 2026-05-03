@@ -1,52 +1,54 @@
-# Email System Validation
+## Plan
 
-## Status
+### 1. Update Instagram link
+In `src/components/xenium/Footer.tsx`, replace the current Instagram URL with `https://www.instagram.com/xenium.sites/` and add `target="_blank"`, `rel="noopener noreferrer"`, and `aria-label="Xenium on Instagram"` (plus `aria-label="Email Xenium"` on the mail icon).
 
-- **Domain `notify.xenium-sites.com`**: ✅ Verified and ready
-- **Email infrastructure** (queues, tables, cron, templates): ✅ In place
-- **`email_send_log`**: empty — no email has ever been successfully enqueued
-- **Admin notifications on form submission**: ❌ Failing
+### 2. Create Privacy Policy page
+New file `src/pages/Privacy.tsx` — a simple, branded page (matches dark theme, Cormorant headings, Jakarta body) with sections:
+- Introduction
+- Information we collect (name, email, phone, occasion details, uploaded media)
+- How we use it (creating your Xenium experience, sending transactional emails, customer support)
+- Sharing (we do not sell data; processors: Lovable Cloud / Supabase, Resend for email)
+- Data retention & your rights (access, deletion via xeniumgifts@gmail.com)
+- Cookies (only essential)
+- Contact
 
-## Root cause
+Includes a back-to-home link and the same Navbar/Footer for consistency.
 
-The Edge Function logs for `submit-xenium-request` show:
+### 3. Create Terms of Service page
+New file `src/pages/Terms.tsx` — sections:
+- Acceptance of terms
+- Service description (personalized digital experiences, ₹750 fixed price)
+- Order, delivery & revisions
+- Refund policy (work begins on submission; non-refundable once delivery starts)
+- User content & rights (you own your media; you grant Xenium license to use it solely to build your experience)
+- Acceptable use (no illegal/infringing/harmful content)
+- Limitation of liability
+- Changes to terms
+- Governing law (India)
+- Contact
 
+### 4. Wire up routes
+In `src/App.tsx`, add:
 ```
-Email notify error: FunctionsHttpError 401 Unauthorized
-sb-error-code: UNAUTHORIZED_INVALID_JWT_FORMAT
+<Route path="/privacy" element={<Privacy />} />
+<Route path="/terms" element={<Terms />} />
 ```
+(above the catch-all).
 
-`submit-xenium-request` calls `send-transactional-email` via `supabase.functions.invoke(...)` using a client created with the **service-role key**. The Supabase JS SDK's `functions.invoke` only forwards the JWT it was initialized with **for the user session** — when using a service-role client server-to-server, the Authorization header isn't attached the way the gateway expects, so it rejects with `UNAUTHORIZED_INVALID_JWT_FORMAT`. Meanwhile `send-transactional-email` has `verify_jwt = true`, so the gateway blocks the request before our code runs.
+### 5. Update Footer links
+Replace dead Privacy/Terms `<button>`s in `Footer.tsx` with `<Link to="/privacy">` and `<Link to="/terms">` from `react-router-dom`.
 
-That's why the request gets saved successfully but no email is ever enqueued (and `email_send_log` stays empty).
+### 6. SEO
+Add the two new URLs to `public/sitemap.xml`.
 
-## Fix
+### 7. Bonus fix found during validation
+Add `whitespace-nowrap` to the two hero CTA buttons in `src/components/xenium/Hero.tsx` — they currently wrap to two lines on ~1366px laptop viewports.
 
-Inside `submit-xenium-request/index.ts`, replace the `supabase.functions.invoke(...)` call with a direct `fetch` to the function URL, explicitly passing the service-role key in both `Authorization: Bearer ...` and `apikey` headers. This is the standard pattern for server-to-server Edge Function invocation when the callee has `verify_jwt = true`.
-
-```ts
-const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${supabaseKey}`,  // service role
-    'apikey': supabaseKey,
-  },
-  body: JSON.stringify({ templateName: 'new-xenium-request', ... }),
-});
-```
-
-No DB or template changes needed.
-
-## Validation steps after fix
-
-1. Redeploy `submit-xenium-request`.
-2. Submit a test request from the live form.
-3. Confirm:
-   - `email_send_log` gets a `pending` row, then `sent` (within ~5s, the cron interval).
-   - `xeniumgifts@gmail.com` receives the "New Xenium request" email.
-4. If `sent` doesn't appear, check `process-email-queue` logs and the pgmq `transactional_emails` queue.
-
-## Files changed
-
-- `supabase/functions/submit-xenium-request/index.ts` — switch invoke to direct fetch with service-role auth headers.
+### Files touched
+- `src/components/xenium/Footer.tsx` (Instagram link + Privacy/Terms links + a11y)
+- `src/components/xenium/Hero.tsx` (whitespace-nowrap)
+- `src/pages/Privacy.tsx` (new)
+- `src/pages/Terms.tsx` (new)
+- `src/App.tsx` (routes)
+- `public/sitemap.xml` (add entries)
