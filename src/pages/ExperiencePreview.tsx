@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Heart, Play, Pause, Music, Image, MessageSquareHeart, Flame, Video, Sparkles } from "lucide-react";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { ArrowLeft, Heart, Play, Pause, Image as ImageIcon, MessageSquareHeart, Flame, Video, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
 
 // Hero images
 import heroBirthday from "@/assets/hero-birthday.jpg";
@@ -11,13 +11,27 @@ import heroMemorial from "@/assets/hero-memorial.jpg";
 import heroRetirement from "@/assets/hero-retirement.jpg";
 import heroCorporate from "@/assets/hero-corporate.jpg";
 
-// Gallery images
-import galleryBirthday from "@/assets/gallery-birthday-1.jpg";
-import galleryAnniversary from "@/assets/gallery-anniversary-1.jpg";
-import galleryProposal from "@/assets/gallery-proposal-1.jpg";
-import galleryMemorial from "@/assets/gallery-memorial-1.jpg";
-import galleryRetirement from "@/assets/gallery-retirement-1.jpg";
-import galleryCorporate from "@/assets/gallery-corporate-1.jpg";
+// Gallery images — set 1 (existing)
+import galleryBirthday1 from "@/assets/gallery-birthday-1.jpg";
+import galleryAnniversary1 from "@/assets/gallery-anniversary-1.jpg";
+import galleryProposal1 from "@/assets/gallery-proposal-1.jpg";
+import galleryMemorial1 from "@/assets/gallery-memorial-1.jpg";
+import galleryRetirement1 from "@/assets/gallery-retirement-1.jpg";
+import galleryCorporate1 from "@/assets/gallery-corporate-1.jpg";
+
+// Gallery images — set 2
+import galleryBirthday2 from "@/assets/gallery-birthday-2.jpg";
+import galleryBirthday3 from "@/assets/gallery-birthday-3.jpg";
+import galleryAnniversary2 from "@/assets/gallery-anniversary-2.jpg";
+import galleryAnniversary3 from "@/assets/gallery-anniversary-3.jpg";
+import galleryProposal2 from "@/assets/gallery-proposal-2.jpg";
+import galleryProposal3 from "@/assets/gallery-proposal-3.jpg";
+import galleryMemorial2 from "@/assets/gallery-memorial-2.jpg";
+import galleryMemorial3 from "@/assets/gallery-memorial-3.jpg";
+import galleryRetirement2 from "@/assets/gallery-retirement-2.jpg";
+import galleryRetirement3 from "@/assets/gallery-retirement-3.jpg";
+import galleryCorporate2 from "@/assets/gallery-corporate-2.jpg";
+import galleryCorporate3 from "@/assets/gallery-corporate-3.jpg";
 
 const heroImages: Record<string, string> = {
   birthday: heroBirthday,
@@ -28,14 +42,7 @@ const heroImages: Record<string, string> = {
   corporate: heroCorporate,
 };
 
-const galleryImages: Record<string, string> = {
-  birthday: galleryBirthday,
-  anniversary: galleryAnniversary,
-  proposal: galleryProposal,
-  memorial: galleryMemorial,
-  retirement: galleryRetirement,
-  corporate: galleryCorporate,
-};
+interface PhotoItem { label: string; src: string; }
 
 interface ExperienceData {
   title: string;
@@ -47,9 +54,11 @@ interface ExperienceData {
   story: string[];
   timeline: { year: string; event: string }[];
   messages: { from: string; text: string }[];
-  photos: { label: string }[];
+  photos: PhotoItem[];
   song: string;
   videoCaption: string;
+  videoTitle: string;
+  videoDuration: string;
   animatedQuote: string;
   hasCandles?: boolean;
   candleCount?: number;
@@ -81,15 +90,15 @@ const experiences: Record<string, ExperienceData> = {
       { from: "James", text: "Every day with you feels like a gift. This one's just a little more official." },
     ],
     photos: [
-      { label: "Childhood" },
-      { label: "Graduation" },
-      { label: "Adventures" },
-      { label: "Together" },
-      { label: "Celebrations" },
-      { label: "Today" },
+      { label: "Celebration", src: galleryBirthday1 },
+      { label: "Make a Wish", src: galleryBirthday2 },
+      { label: "The Gift", src: galleryBirthday3 },
+      { label: "Together", src: heroBirthday },
     ],
     song: "Perfect — Ed Sheeran",
     videoCaption: "A montage of Sarah's most joyful moments — from her first steps to her brightest smile.",
+    videoTitle: "Sarah — A Life in Moments",
+    videoDuration: "01:24",
     animatedQuote: "Here's to 29 years of making the world more beautiful just by being in it.",
     hasCandles: true,
     candleCount: 29,
@@ -119,15 +128,15 @@ const experiences: Record<string, ExperienceData> = {
       { from: "Parents", text: "Watching you two grow together has been our greatest joy." },
     ],
     photos: [
-      { label: "First Date" },
-      { label: "The Proposal" },
-      { label: "Wedding Day" },
-      { label: "Parenthood" },
-      { label: "Travels" },
-      { label: "Today" },
+      { label: "Together", src: galleryAnniversary1 },
+      { label: "Vows", src: galleryAnniversary2 },
+      { label: "Letters", src: galleryAnniversary3 },
+      { label: "A Decade", src: heroAnniversary },
     ],
     song: "Tum Hi Ho — Arijit Singh",
     videoCaption: "A cinematic journey through a decade of love — from their first date to today.",
+    videoTitle: "Priya & Arjun — Ten Years",
+    videoDuration: "02:08",
     animatedQuote: "Love isn't a feeling. It's a choice we make every single day.",
   },
   proposal: {
@@ -155,15 +164,15 @@ const experiences: Record<string, ExperienceData> = {
       { from: "Mom", text: "We already consider her family. Make it official, son!" },
     ],
     photos: [
-      { label: "The Beginning" },
-      { label: "Adventures" },
-      { label: "Home" },
-      { label: "Luna" },
-      { label: "Us" },
-      { label: "Forever?" },
+      { label: "Us", src: galleryProposal1 },
+      { label: "The Ring", src: galleryProposal2 },
+      { label: "The Skyline", src: galleryProposal3 },
+      { label: "Forever?", src: heroProposal },
     ],
     song: "Marry Me — Train",
     videoCaption: "From strangers at a rooftop party to partners for life — this is their story.",
+    videoTitle: "Mia & Daniel — Will You?",
+    videoDuration: "01:46",
     animatedQuote: "Will you marry me?",
   },
   memorial: {
@@ -191,15 +200,15 @@ const experiences: Record<string, ExperienceData> = {
       { from: "Emily", text: "I still hear your voice when I need courage. Thank you for everything." },
     ],
     photos: [
-      { label: "Young Days" },
-      { label: "Wedding" },
-      { label: "Family" },
-      { label: "Career" },
-      { label: "Grandkids" },
-      { label: "Legacy" },
+      { label: "Remembering", src: galleryMemorial1 },
+      { label: "His Light", src: galleryMemorial2 },
+      { label: "His Words", src: galleryMemorial3 },
+      { label: "Legacy", src: heroMemorial },
     ],
     song: "What a Wonderful World — Louis Armstrong",
     videoCaption: "A life captured in moments — laughter, love, and quiet strength.",
+    videoTitle: "Robert — A Life Well Lived",
+    videoDuration: "02:32",
     animatedQuote: "We carry you in everything we do.",
   },
   retirement: {
@@ -227,15 +236,15 @@ const experiences: Record<string, ExperienceData> = {
       { from: "A Patient", text: "You saved my life in 2015. I named my daughter after you." },
     ],
     photos: [
-      { label: "Early Days" },
-      { label: "The Team" },
-      { label: "Milestones" },
-      { label: "Community" },
-      { label: "Mentoring" },
-      { label: "Farewell" },
+      { label: "The Years", src: galleryRetirement1 },
+      { label: "Her Calling", src: galleryRetirement2 },
+      { label: "Standing Ovation", src: galleryRetirement3 },
+      { label: "Legacy", src: heroRetirement },
     ],
     song: "Wind Beneath My Wings — Bette Midler",
     videoCaption: "30 years of healing, caring, and making a difference — one patient at a time.",
+    videoTitle: "Dr. Sharma — Thirty Years",
+    videoDuration: "02:14",
     animatedQuote: "Thank you — for everything you gave that no textbook could teach.",
   },
   corporate: {
@@ -263,18 +272,38 @@ const experiences: Record<string, ExperienceData> = {
       { from: "HR", text: "Your impact goes way beyond your job title. Congratulations, Rahul." },
     ],
     photos: [
-      { label: "Day One" },
-      { label: "Team Building" },
-      { label: "Hackathon Win" },
-      { label: "Launch Day" },
-      { label: "Leadership" },
-      { label: "The Award" },
+      { label: "The Team", src: galleryCorporate1 },
+      { label: "The Award", src: galleryCorporate2 },
+      { label: "The Boardroom", src: galleryCorporate3 },
+      { label: "Recognition", src: heroCorporate },
     ],
     song: "Hall of Fame — The Script",
     videoCaption: "From day one to Employee of the Year — a journey of impact and dedication.",
+    videoTitle: "Rahul — Five Years In",
+    videoDuration: "01:58",
     animatedQuote: "Leaders like you don't come around often.",
   },
 };
+
+// ─── Document head helper for per-route SEO ───
+function useDocumentHead(title: string, description: string) {
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = title;
+    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    const previousDesc = meta?.content;
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "description";
+      document.head.appendChild(meta);
+    }
+    meta.content = description;
+    return () => {
+      document.title = previousTitle;
+      if (meta && previousDesc !== undefined) meta.content = previousDesc;
+    };
+  }, [title, description]);
+}
 
 // ─── Animated Typewriter Text ───
 function TypewriterText({ text, className }: { text: string; className?: string }) {
@@ -336,7 +365,7 @@ function BirthdayCake({ candleCount = 5 }: { candleCount?: number }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.8 }}
-      className="my-16"
+      className="my-12 sm:my-16"
     >
       <div className="text-center mb-6">
         <Sparkles size={18} className="text-xenium-amber mx-auto mb-3" />
@@ -344,17 +373,16 @@ function BirthdayCake({ candleCount = 5 }: { candleCount?: number }) {
       </div>
 
       <div className="relative max-w-sm mx-auto">
-        {/* Cake */}
         <div className="relative">
-          {/* Candles row */}
-          <div className="flex justify-center gap-3 mb-2 relative z-10">
+          <div className="flex justify-center gap-2 sm:gap-3 mb-2 relative z-10">
             {litCandles.map((lit, i) => (
               <button
                 key={i}
                 onClick={() => lit && blowCandle(i)}
                 className="flex flex-col items-center cursor-pointer group"
+                style={{ touchAction: "manipulation" }}
+                aria-label={lit ? "Blow out candle" : "Candle out"}
               >
-                {/* Flame */}
                 <AnimatePresence>
                   {lit && (
                     <motion.div
@@ -373,7 +401,6 @@ function BirthdayCake({ candleCount = 5 }: { candleCount?: number }) {
                   )}
                 </AnimatePresence>
                 {!lit && <div className="h-[28px]" />}
-                {/* Candle stick */}
                 <div
                   className="w-2 h-10 rounded-sm transition-all duration-300"
                   style={{
@@ -386,7 +413,6 @@ function BirthdayCake({ candleCount = 5 }: { candleCount?: number }) {
             ))}
           </div>
 
-          {/* Cake layers */}
           <div className="relative">
             <div className="h-6 bg-gradient-to-r from-xenium-rose/60 via-xenium-amber/50 to-xenium-rose/60 rounded-t-xl mx-4" />
             <div className="h-14 bg-gradient-to-b from-xenium-violet-deep/40 to-xenium-violet-deep/60 rounded-lg mx-2 flex items-center justify-center">
@@ -402,7 +428,6 @@ function BirthdayCake({ candleCount = 5 }: { candleCount?: number }) {
             <div className="h-4 bg-gradient-to-r from-xenium-gold/30 via-xenium-amber/40 to-xenium-gold/30 rounded-b-xl" />
           </div>
 
-          {/* Glow when all blown */}
           <AnimatePresence>
             {allBlown && (
               <motion.div
@@ -414,7 +439,6 @@ function BirthdayCake({ candleCount = 5 }: { candleCount?: number }) {
           </AnimatePresence>
         </div>
 
-        {/* Birthday message */}
         <AnimatePresence>
           {showMessage && (
             <motion.div
@@ -436,8 +460,18 @@ function BirthdayCake({ candleCount = 5 }: { candleCount?: number }) {
   );
 }
 
-// ─── Video Embed Section ───
-function VideoEmbed({ caption, gradient }: { caption: string; gradient: string }) {
+// ─── Cinematic Video Embed ───
+function VideoEmbed({
+  poster,
+  caption,
+  title,
+  duration,
+}: {
+  poster: string;
+  caption: string;
+  title: string;
+  duration: string;
+}) {
   const [playing, setPlaying] = useState(false);
 
   return (
@@ -446,70 +480,104 @@ function VideoEmbed({ caption, gradient }: { caption: string; gradient: string }
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.8 }}
-      className="my-16"
+      className="my-12 sm:my-16"
     >
       <div className="text-center mb-8">
         <Video size={20} className="text-xenium-amber mx-auto mb-3" />
         <h3 className="font-display text-2xl md:text-3xl font-light">The Video</h3>
       </div>
-      <div
-        className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group max-w-3xl mx-auto"
-        onClick={() => setPlaying(!playing)}
-      >
-        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-40`} />
-        <div className="absolute inset-0 bg-background/60" />
 
-        {/* Simulated video content */}
-        <AnimatePresence>
+      <div
+        className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group max-w-3xl mx-auto border border-border/50 shadow-2xl"
+        onClick={() => setPlaying(!playing)}
+        style={{ touchAction: "manipulation" }}
+        role="button"
+        aria-label={playing ? "Pause video" : "Play video"}
+      >
+        {/* Poster image with Ken Burns when playing */}
+        <motion.img
+          src={poster}
+          alt={title}
+          className="absolute inset-0 w-full h-full object-cover"
+          loading="lazy"
+          width={1280}
+          height={720}
+          animate={playing ? { scale: [1, 1.08], x: [0, -10] } : { scale: 1, x: 0 }}
+          transition={playing ? { duration: 12, ease: "linear" } : { duration: 0.6 }}
+        />
+
+        {/* Vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,hsl(var(--background))_100%)] opacity-70" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-background/40" />
+
+        {/* Top-left trust badge */}
+        <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 backdrop-blur-md border border-foreground/10">
+          <Sparkles size={11} className="text-xenium-amber" />
+          <span className="font-display italic text-[11px] text-foreground/80">Original Xenium Video</span>
+        </div>
+
+        {/* Top-right HD pill */}
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider bg-background/50 backdrop-blur-md border border-foreground/10 text-foreground/70">
+          HD
+        </div>
+
+        {/* Center play / pause */}
+        <AnimatePresence mode="wait">
           {playing ? (
-            <motion.div
-              key="playing"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+            <motion.button
+              key="pause"
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col items-center justify-center"
+              className="absolute inset-0 flex items-center justify-center"
+              aria-label="Pause"
             >
-              {/* Animated bars simulating video */}
-              <div className="flex items-end gap-1 mb-6">
-                {[...Array(20)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="w-1.5 bg-xenium-amber/60 rounded-full"
-                    animate={{ height: [10, 30 + Math.random() * 30, 10] }}
-                    transition={{ duration: 0.5 + Math.random() * 0.5, repeat: Infinity, delay: i * 0.05 }}
-                  />
-                ))}
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-background/40 backdrop-blur-md border border-foreground/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Pause size={22} className="text-foreground/90" />
               </div>
-              <p className="text-sm text-foreground/60 italic max-w-md text-center px-4">{caption}</p>
-              <div className="absolute bottom-4 left-4 right-4">
-                <div className="h-1 bg-foreground/10 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-xenium-amber/60 rounded-full"
-                    initial={{ width: "0%" }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 15, ease: "linear" }}
-                  />
-                </div>
-              </div>
-              <button className="absolute top-4 right-4 text-foreground/40 hover:text-foreground/80 transition-colors">
-                <Pause size={18} />
-              </button>
-            </motion.div>
+            </motion.button>
           ) : (
             <motion.div
-              key="paused"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              key="play"
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col items-center justify-center"
+              className="absolute inset-0 flex items-center justify-center"
             >
-              <div className="w-16 h-16 rounded-full border-2 border-foreground/30 flex items-center justify-center group-hover:border-xenium-amber/60 group-hover:bg-xenium-amber/10 transition-all duration-300">
-                <Play size={24} className="text-foreground/50 group-hover:text-xenium-amber ml-1 transition-colors" />
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-xenium-amber/30 blur-xl animate-glow-pulse" />
+                <div className="absolute -inset-3 rounded-full border border-xenium-amber/40 animate-ping opacity-50" />
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-xenium-amber/95 flex items-center justify-center shadow-[0_10px_40px_-10px_hsl(var(--xenium-amber)/0.7)] group-hover:scale-105 transition-transform">
+                  <Play size={26} className="text-background ml-1" fill="currentColor" />
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground/50 mt-4 uppercase tracking-widest">Play Video</p>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Bottom info bar */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-display text-base sm:text-lg text-foreground/95 truncate">{title}</p>
+              <p className="text-[11px] text-foreground/60 truncate">{caption}</p>
+            </div>
+            <span className="shrink-0 text-[11px] text-foreground/70 px-2 py-0.5 rounded bg-background/50 backdrop-blur-md border border-foreground/10">
+              {duration}
+            </span>
+          </div>
+
+          {/* Progress bar */}
+          <div className="mt-2 h-[3px] bg-foreground/10 rounded-full overflow-hidden">
+            <motion.div
+              key={playing ? "p1" : "p0"}
+              className="h-full bg-gradient-to-r from-xenium-amber via-xenium-rose to-xenium-violet-mid rounded-full"
+              initial={{ width: playing ? "0%" : "0%" }}
+              animate={{ width: playing ? "100%" : "0%" }}
+              transition={{ duration: playing ? 12 : 0.4, ease: "linear" }}
+            />
+          </div>
+        </div>
       </div>
     </motion.div>
   );
@@ -564,9 +632,14 @@ export default function ExperiencePreview() {
   useEffect(() => {
     const interval = setInterval(() => {
       setActivePhoto((p) => (exp ? (p + 1) % exp.photos.length : 0));
-    }, 3000);
+    }, 3500);
     return () => clearInterval(interval);
   }, [exp]);
+
+  useDocumentHead(
+    exp ? `${exp.title} — Xenium Experience Preview` : "Experience — Xenium",
+    exp ? `${exp.subtitle} A sample of the personalized Xenium digital experience.` : "Sample preview of a Xenium digital experience."
+  );
 
   if (!exp) {
     return (
@@ -580,15 +653,15 @@ export default function ExperiencePreview() {
   }
 
   const heroImg = heroImages[slug || ""];
-  const galleryImg = galleryImages[slug || ""];
+  const featuredPhoto = exp.photos[activePhoto];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft size={16} /> Back to Xenium
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50" aria-label="Experience preview navigation">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
+          <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors min-h-[44px]">
+            <ArrowLeft size={16} /> <span className="hidden sm:inline">Back to Xenium</span><span className="sm:hidden">Back</span>
           </Link>
           <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 border border-border/50 px-3 py-1 rounded-full">
             Sample Preview
@@ -597,12 +670,11 @@ export default function ExperiencePreview() {
       </nav>
 
       {/* Hero with Image */}
-      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pt-16">
-        {/* Hero background image */}
+      <section className="relative min-h-[80vh] sm:min-h-[85vh] flex items-center justify-center overflow-hidden pt-16" aria-label="Experience hero">
         <div className="absolute inset-0">
           <img
             src={heroImg}
-            alt={exp.title}
+            alt={`${exp.title} — ${exp.tag}`}
             className="w-full h-full object-cover"
             width={1920}
             height={1080}
@@ -611,32 +683,31 @@ export default function ExperiencePreview() {
           <div className="absolute inset-0 bg-gradient-to-r from-background/40 to-transparent" />
         </div>
         <FloatingParticles />
-        <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
+        <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
-            <span className="inline-block text-[10px] uppercase tracking-[0.2em] text-foreground/60 border border-foreground/20 rounded-full px-4 py-1.5 mb-8 backdrop-blur-sm bg-background/20">
+            <span className="inline-block text-[10px] uppercase tracking-[0.2em] text-foreground/60 border border-foreground/20 rounded-full px-4 py-1.5 mb-6 sm:mb-8 backdrop-blur-sm bg-background/20">
               {exp.tag}
             </span>
           </motion.div>
           <motion.h1 initial="hidden" animate="visible" variants={fadeUp} custom={1}
-            className="font-display text-5xl md:text-7xl font-light leading-tight mb-6 drop-shadow-lg"
+            className="font-display text-4xl sm:text-5xl md:text-7xl font-light leading-tight mb-6 drop-shadow-lg"
           >
             {exp.title}
           </motion.h1>
           <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2}
-            className="text-foreground/80 text-lg md:text-xl leading-relaxed mb-4 drop-shadow-md"
+            className="text-foreground/80 text-base sm:text-lg md:text-xl leading-relaxed mb-4 drop-shadow-md"
           >
             {exp.subtitle}
           </motion.p>
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3}
-            className="flex items-center justify-center gap-4 text-sm text-foreground/50"
+            className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-foreground/50"
           >
             <span>Dedicated to <span className="text-foreground/80 italic">{exp.dedicatedTo}</span></span>
-            <span className="w-1 h-1 rounded-full bg-foreground/30" />
+            <span className="hidden sm:inline w-1 h-1 rounded-full bg-foreground/30" />
             <span>From <span className="text-foreground/80">{exp.from}</span></span>
           </motion.div>
         </div>
 
-        {/* Scroll indicator */}
         <motion.div
           className="absolute bottom-8 left-1/2 -translate-x-1/2"
           animate={{ y: [0, 8, 0] }}
@@ -649,7 +720,7 @@ export default function ExperiencePreview() {
       </section>
 
       {/* Animated Quote Section */}
-      <section className="py-20 px-6">
+      <section className="py-16 sm:py-20 px-4 sm:px-6" aria-label="Featured quote">
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -658,14 +729,14 @@ export default function ExperiencePreview() {
           className="max-w-2xl mx-auto text-center"
         >
           <Sparkles size={18} className="text-xenium-amber mx-auto mb-6" />
-          <p className="font-display text-2xl md:text-4xl italic text-foreground/80 leading-relaxed">
+          <p className="font-display text-xl sm:text-2xl md:text-4xl italic text-foreground/80 leading-relaxed">
             "<TypewriterText text={exp.animatedQuote} />"
           </p>
         </motion.div>
       </section>
 
       {/* Story */}
-      <section className="py-20 px-6">
+      <section className="py-16 sm:py-20 px-4 sm:px-6" aria-label="Their story">
         <div className="max-w-2xl mx-auto">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }}
             variants={fadeUp} custom={0}
@@ -675,7 +746,7 @@ export default function ExperiencePreview() {
           {exp.story.map((p, i) => (
             <motion.p key={i} initial="hidden" whileInView="visible" viewport={{ once: true }}
               variants={fadeUp} custom={i + 1}
-              className="font-display text-xl md:text-2xl text-foreground/80 leading-relaxed italic text-center mb-6 last:mb-0"
+              className="font-display text-lg sm:text-xl md:text-2xl text-foreground/80 leading-relaxed italic text-center mb-6 last:mb-0"
             >
               "{p}"
             </motion.p>
@@ -685,7 +756,7 @@ export default function ExperiencePreview() {
 
       {/* Birthday Cake (only for birthday experience) */}
       {exp.hasCandles && (
-        <section className="py-12 px-6">
+        <section className="py-10 sm:py-12 px-4 sm:px-6" aria-label="Interactive birthday cake">
           <div className="max-w-5xl mx-auto">
             <BirthdayCake candleCount={exp.candleCount} />
           </div>
@@ -693,78 +764,98 @@ export default function ExperiencePreview() {
       )}
 
       {/* Video Embed */}
-      <section className="py-20 px-6">
+      <section className="py-16 sm:py-20 px-4 sm:px-6" aria-label="Featured video">
         <div className="max-w-5xl mx-auto">
-          <VideoEmbed caption={exp.videoCaption} gradient={exp.gradient} />
+          <VideoEmbed
+            poster={heroImg}
+            caption={exp.videoCaption}
+            title={exp.videoTitle}
+            duration={exp.videoDuration}
+          />
         </div>
       </section>
 
-      {/* Photo Gallery with Real Images */}
-      <section className="py-20 px-6">
+      {/* Photo Gallery with distinct images */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6" aria-label="Moments captured">
         <div className="max-w-5xl mx-auto">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-            className="text-center mb-12"
+            className="text-center mb-10 sm:mb-12"
           >
-            <Image size={20} className="text-xenium-amber mx-auto mb-4" />
+            <ImageIcon size={20} className="text-xenium-amber mx-auto mb-4" />
             <h2 className="font-display text-3xl md:text-4xl font-light">Moments Captured</h2>
+            <p className="text-muted-foreground/60 text-sm mt-3">A few moments — each its own memory.</p>
           </motion.div>
 
           {/* Featured large image */}
           <motion.div
             initial="hidden" whileInView="visible" viewport={{ once: true }}
             variants={fadeUp} custom={0}
-            className="mb-6"
+            className="mb-4 sm:mb-6"
           >
             <div className="aspect-video rounded-2xl overflow-hidden relative group">
-              <img
-                src={galleryImg}
-                alt="Featured moment"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                loading="lazy"
-                width={1024}
-                height={768}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
-              <div className="absolute bottom-4 left-4 text-xs uppercase tracking-[0.15em] text-foreground/70 bg-background/30 backdrop-blur-sm rounded-full px-3 py-1">
-                {exp.photos[activePhoto]?.label || "Memory"}
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={activePhoto}
+                  src={featuredPhoto.src}
+                  alt={featuredPhoto.label}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  width={1024}
+                  height={576}
+                  initial={{ opacity: 0, scale: 1.04 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.7 }}
+                />
+              </AnimatePresence>
+              <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent pointer-events-none" />
+              <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 text-xs uppercase tracking-[0.15em] text-foreground/80 bg-background/40 backdrop-blur-md rounded-full px-3 py-1 border border-foreground/10">
+                {featuredPhoto.label}
               </div>
             </div>
           </motion.div>
 
-          {/* Thumbnail grid */}
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+          {/* Thumbnail grid — 4 distinct images */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             {exp.photos.map((photo, i) => (
-              <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }}
-                variants={fadeUp} custom={i * 0.5}
-                className={`aspect-square rounded-xl overflow-hidden relative group cursor-pointer transition-all duration-500 ${
-                  activePhoto === i ? 'ring-2 ring-xenium-amber/60 scale-105' : 'hover:scale-105 opacity-70 hover:opacity-100'
+              <motion.button
+                type="button"
+                key={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={fadeUp}
+                custom={i * 0.4}
+                className={`aspect-square rounded-xl overflow-hidden relative group transition-all duration-500 ${
+                  activePhoto === i ? "ring-2 ring-xenium-amber/70 scale-[1.02]" : "opacity-80 hover:opacity-100 hover:scale-[1.02]"
                 }`}
                 onClick={() => setActivePhoto(i)}
+                style={{ touchAction: "manipulation" }}
+                aria-label={`Show ${photo.label}`}
               >
                 <img
-                  src={galleryImg}
+                  src={photo.src}
                   alt={photo.label}
                   className="w-full h-full object-cover"
                   loading="lazy"
-                  width={1024}
-                  height={768}
-                  style={{ filter: `hue-rotate(${i * 30}deg) brightness(${0.7 + i * 0.05})` }}
+                  width={512}
+                  height={512}
                 />
-                <div className="absolute inset-0 bg-background/30 group-hover:bg-transparent transition-colors duration-300" />
-                <div className="absolute bottom-1.5 left-1.5 text-[9px] uppercase tracking-[0.1em] text-foreground/70 bg-background/40 backdrop-blur-sm rounded-full px-2 py-0.5">
+                <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent group-hover:from-background/30 transition-colors duration-300" />
+                <div className="absolute bottom-1.5 left-1.5 text-[10px] uppercase tracking-[0.1em] text-foreground/85 bg-background/50 backdrop-blur-sm rounded-full px-2 py-0.5">
                   {photo.label}
                 </div>
-              </motion.div>
+              </motion.button>
             ))}
           </div>
         </div>
       </section>
 
       {/* Timeline */}
-      <section className="py-20 px-6">
+      <section className="py-16 sm:py-20 px-4 sm:px-6" aria-label="The journey timeline">
         <div className="max-w-2xl mx-auto">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-            className="text-center mb-12"
+            className="text-center mb-10 sm:mb-12"
           >
             <h2 className="font-display text-3xl md:text-4xl font-light">The Journey</h2>
           </motion.div>
@@ -793,7 +884,7 @@ export default function ExperiencePreview() {
                     />
                   )}
                 </div>
-                <div className="pb-8">
+                <div className="pb-8 min-w-0">
                   <span className="text-xenium-amber text-xs font-semibold tracking-widest">{item.year}</span>
                   <p className="text-foreground/80 text-base mt-1">{item.event}</p>
                 </div>
@@ -804,22 +895,22 @@ export default function ExperiencePreview() {
       </section>
 
       {/* Messages */}
-      <section className="py-20 px-6">
+      <section className="py-16 sm:py-20 px-4 sm:px-6" aria-label="Words from the heart">
         <div className="max-w-3xl mx-auto">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-            className="text-center mb-12"
+            className="text-center mb-10 sm:mb-12"
           >
             <MessageSquareHeart size={20} className="text-xenium-violet-mid mx-auto mb-4" />
             <h2 className="font-display text-3xl md:text-4xl font-light">Words from the Heart</h2>
           </motion.div>
-          <div className="space-y-6">
+          <div className="space-y-5 sm:space-y-6">
             {exp.messages.map((msg, i) => (
               <motion.div key={i} initial="hidden" whileInView="visible" viewport={{ once: true }}
                 variants={fadeUp} custom={i + 1}
-                className="relative p-8 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm"
+                className="relative p-6 sm:p-8 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm"
               >
-                <div className="absolute -top-3 left-8 text-5xl text-xenium-violet-mid/20 font-display">"</div>
-                <p className="text-foreground/80 text-base leading-relaxed italic mb-4 pt-2">
+                <div className="absolute -top-3 left-6 sm:left-8 text-5xl text-xenium-violet-mid/20 font-display">"</div>
+                <p className="text-foreground/80 text-sm sm:text-base leading-relaxed italic mb-4 pt-2">
                   {msg.text}
                 </p>
                 <p className="text-xs text-muted-foreground/60 uppercase tracking-widest">— {msg.from}</p>
@@ -829,72 +920,16 @@ export default function ExperiencePreview() {
         </div>
       </section>
 
-      {/* Now Playing - decorative */}
-      <section className="py-12 px-6">
-        <div className="max-w-md mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-            className="p-6 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm flex items-center gap-4"
-          >
-            <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: `linear-gradient(135deg, hsl(var(--xenium-violet-deep)), hsl(var(--xenium-amber)))` }}
-            >
-              <Music size={18} className="text-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground/50 mb-1">Suggested Track</p>
-              <p className="text-sm text-foreground/80 truncate">{exp.song}</p>
-            </div>
-            <div className="flex items-end gap-0.5">
-              {[...Array(4)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="w-1 bg-xenium-amber/50 rounded-full"
-                  animate={{ height: [4, 12 + Math.random() * 8, 4] }}
-                  transition={{ duration: 0.6 + Math.random() * 0.4, repeat: Infinity, delay: i * 0.1 }}
-                />
-              ))}
-            </div>
-          </motion.div>
-        </div>
+      {/* Footer CTA */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 text-center">
+        <p className="text-muted-foreground/70 text-sm mb-4">Want one made for someone you love?</p>
+        <Link
+          to="/#create"
+          className="inline-block gradient-full text-foreground font-semibold px-7 py-3.5 rounded-full text-sm hover:opacity-90 transition-opacity glow-violet"
+        >
+          Create Your Xenium
+        </Link>
       </section>
-
-      {/* CTA */}
-      <section className="py-20 px-6">
-        <div className="max-w-2xl mx-auto text-center">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
-            <p className="text-muted-foreground text-sm mb-6">This is a sample Xenium experience.</p>
-            <h2 className="font-display text-3xl md:text-4xl font-light mb-4">
-              Want one made for <span className="italic gradient-text">your story?</span>
-            </h2>
-            <p className="text-muted-foreground text-base mb-8">Every Xenium is unique — crafted around your memories, your words, your love.</p>
-            <Link
-              to="/"
-              onClick={() => setTimeout(() => document.querySelector("#create")?.scrollIntoView({ behavior: "smooth" }), 100)}
-              className="inline-flex items-center gap-2 text-foreground font-semibold px-8 py-4 rounded-full hover:opacity-90 transition-all"
-              style={{ background: `linear-gradient(135deg, hsl(var(--xenium-violet-deep)), hsl(var(--xenium-amber)))` }}
-            >
-              Create Your Xenium
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-8 px-6 text-center">
-        <p className="text-xs text-muted-foreground/50">
-          Made with ❤️ by <Link to="/" className="text-xenium-amber/60 hover:text-xenium-amber transition-colors">Xenium</Link>
-        </p>
-      </footer>
-
-      {/* Candle flicker CSS */}
-      <style>{`
-        @keyframes flicker {
-          0% { transform: scale(1) rotate(-2deg); opacity: 0.9; }
-          50% { transform: scale(1.1) rotate(2deg); opacity: 1; }
-          100% { transform: scale(0.95) rotate(-1deg); opacity: 0.85; }
-        }
-      `}</style>
     </div>
   );
 }
