@@ -107,14 +107,14 @@ export default function Hero() {
             >
               <button
                 onClick={() => scrollTo("#create")}
-                className="gradient-full text-foreground font-semibold px-8 py-4 rounded-full text-base hover:opacity-90 transition-all glow-violet flex items-center gap-2 hover:shadow-[0_0_60px_-10px_hsl(var(--xenium-violet-deep)/0.6)]"
+                className="gradient-full text-foreground font-semibold px-8 py-4 rounded-full text-base hover:opacity-90 transition-all glow-violet flex items-center gap-2 hover:shadow-[0_0_60px_-10px_hsl(var(--xenium-violet-deep)/0.6)] whitespace-nowrap"
               >
                 <Sparkles size={18} />
                 Create Your Xenium
               </button>
               <button
                 onClick={() => scrollTo("#examples")}
-                className="glass-card text-foreground font-medium px-8 py-4 rounded-full text-base hover:bg-muted/30 transition-all flex items-center gap-2 hover:border-xenium-violet-mid/40"
+                className="glass-card text-foreground font-medium px-8 py-4 rounded-full text-base hover:bg-muted/30 transition-all flex items-center gap-2 hover:border-xenium-violet-mid/40 whitespace-nowrap"
               >
                 <Play size={16} />
                 View Sample Experience
