@@ -75,9 +75,9 @@ export default function Hero() {
                 Premium Digital Gifting
               </p>
               <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-light leading-[1.1] mb-6">
-                Some feelings deserve
+                Personalized digital gifts
                 <br />
-                <span className="gradient-text font-medium italic">more than a text message.</span>
+                <span className="gradient-text font-medium italic">for feelings that deserve more than a text message.</span>
               </h1>
             </motion.div>
 
@@ -87,7 +87,7 @@ export default function Hero() {
               transition={{ duration: 1, delay: 0.3 }}
               className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 leading-relaxed font-light"
             >
-              Xenium creates personalized digital experiences for birthdays, proposals, anniversaries, and meaningful life moments.
+              Xenium creates personalized digital gifts and cinematic experiences for birthdays, proposals, anniversaries, memorials, and meaningful life moments — because some feelings deserve more than a text message.
             </motion.p>
 
             <motion.p
