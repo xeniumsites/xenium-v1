@@ -33,6 +33,7 @@ serve(async (req) => {
     // Store in database
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { data: inserted, error: dbError } = await supabase
@@ -59,10 +60,19 @@ serve(async (req) => {
 
     console.log('Xenium request saved successfully for:', senderEmail);
 
-    // Notify admin via transactional email (non-blocking on failure)
+    // Notify admin via transactional email (non-blocking on failure).
+    // Use direct fetch with explicit service-role auth headers because
+    // send-transactional-email has verify_jwt = true and supabase.functions.invoke
+    // does not reliably forward the service-role JWT for server-to-server calls.
     try {
-      const { error: emailError } = await supabase.functions.invoke('send-transactional-email', {
-        body: {
+      const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`,
+          'apikey': supabaseKey,
+        },
+        body: JSON.stringify({
           templateName: 'new-xenium-request',
           recipientEmail: 'xeniumgifts@gmail.com',
           idempotencyKey: `xenium-request-${inserted.id}`,
@@ -79,9 +89,14 @@ serve(async (req) => {
             deadline,
             submittedAt: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
           },
-        },
+        }),
       });
-      if (emailError) console.error('Email notify error:', emailError);
+      if (!res.ok) {
+        const txt = await res.text();
+        console.error('Email notify error:', res.status, txt);
+      } else {
+        console.log('Email notify enqueued for new request', inserted.id);
+      }
     } catch (e) {
       console.error('Email notify exception:', e);
     }
