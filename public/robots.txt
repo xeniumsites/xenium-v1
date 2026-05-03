@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://xeniumgifts.lovable.app/sitemap.xml
+Sitemap: https://xenium-sites.com/sitemap.xml
