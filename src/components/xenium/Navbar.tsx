@@ -60,7 +60,7 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
         <button onClick={() => scrollTo("#home")} className="flex items-center gap-2" aria-label="Xenium home">
-          <img src={logo} alt="Xenium logo" className="h-7 sm:h-8" width={120} height={32} />
+          <img src={logo} alt="Xenium logo" className="h-9 sm:h-10 w-auto object-contain" width={40} height={40} />
         </button>
 
         {/* Desktop */}

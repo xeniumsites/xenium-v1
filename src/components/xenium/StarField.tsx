@@ -15,7 +15,7 @@ function generateStars(count: number) {
 }
 
 export default function StarField() {
-  const stars = useMemo(() => generateStars(90), []);
+  const stars = useMemo(() => generateStars(45), []);
 
   return (
     <div
