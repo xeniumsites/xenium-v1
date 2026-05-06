@@ -57,7 +57,7 @@ const occasionIcons: Record<(typeof OCCASIONS)[number], LucideIcon> = {
   Other: HelpCircle,
 };
 
-const featureIcons: Record<(typeof FEATURES)[number], React.ComponentType<{ size?: number; className?: string }>> = {
+const featureIcons: Record<(typeof FEATURES)[number], LucideIcon> = {
   "Photo Gallery": ImageIcon,
   "Video Embed": Video,
   Timeline: Clock,
