@@ -9,6 +9,12 @@ import NotFound from "./pages/NotFound.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
+import TrackOrder from "./pages/TrackOrder.tsx";
+import AdminLogin from "./pages/admin/AdminLogin.tsx";
+import AdminLayout from "./pages/admin/AdminLayout.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import AdminOrderDetail from "./pages/admin/AdminOrderDetail.tsx";
+import AdminCreateOrder from "./pages/admin/AdminCreateOrder.tsx";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +27,14 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/experience/:slug" element={<ExperiencePreview />} />
+          <Route path="/track" element={<TrackOrder />} />
+          <Route path="/track/:orderId" element={<TrackOrder />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="orders/new" element={<AdminCreateOrder />} />
+            <Route path="orders/:id" element={<AdminOrderDetail />} />
+          </Route>
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />

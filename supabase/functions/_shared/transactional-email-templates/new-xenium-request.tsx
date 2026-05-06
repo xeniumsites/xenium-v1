@@ -16,6 +16,8 @@ interface Props {
   story?: string
   deadline?: string
   submittedAt?: string
+  shortCode?: string
+  paymentLinkUrl?: string
 }
 
 const Row = ({ label, value }: { label: string; value?: string }) => (
@@ -29,7 +31,7 @@ const Row = ({ label, value }: { label: string; value?: string }) => (
 
 const NewXeniumRequestEmail = ({
   occasion, recipientName, recipientRelation, senderName, senderEmail,
-  senderPhone, mood, features, story, deadline, submittedAt,
+  senderPhone, mood, features, story, deadline, submittedAt, shortCode, paymentLinkUrl,
 }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
@@ -41,6 +43,12 @@ const NewXeniumRequestEmail = ({
         <Text style={lead}>
           A new request just arrived. Details below.
         </Text>
+
+        <Section style={card}>
+          <Heading as="h2" style={h2}>Order</Heading>
+          <Row label="Order ID" value={shortCode} />
+          <Row label="Payment link" value={paymentLinkUrl} />
+        </Section>
 
         <Section style={card}>
           <Heading as="h2" style={h2}>Occasion</Heading>

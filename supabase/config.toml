@@ -14,3 +14,29 @@ verify_jwt = false
 
 [functions.handle-email-suppression]
 verify_jwt = false
+
+# --- payments / tracking / admin ---
+
+# Webhook endpoint hit by Razorpay servers — must be public (no JWT).
+# Authentication happens via X-Razorpay-Signature header inside the function.
+[functions.razorpay-webhook]
+verify_jwt = false
+
+# Public lookup; protected by (code + email) and optional OTP.
+[functions.track-order]
+verify_jwt = false
+[functions.verify-tracking-otp]
+verify_jwt = false
+
+# Public polling fallback used by the tracking page.
+[functions.check-payment-status]
+verify_jwt = false
+
+# Frontend calls this right after submission with anon JWT.
+[functions.create-payment-link]
+verify_jwt = false
+
+# Admin endpoints: verify_jwt = true; the function additionally checks
+# admin_users membership before returning data.
+[functions.admin-orders]
+verify_jwt = true

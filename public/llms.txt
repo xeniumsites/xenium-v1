@@ -1,0 +1,37 @@
+# Xenium
+
+> Xenium is a premium personalized digital gifting service based in India. We hand-craft cinematic digital experiences — combining photos, video, music, written messages and animated text into a single private link — for birthdays, anniversaries, proposals, memorials, retirements and corporate appreciation moments. Each Xenium is delivered in 48–72 hours and starts at ₹750.
+
+A Xenium is not a card, a slideshow, a video editor or a template. It is a custom-designed microsite built around one specific person and one specific story. Recipients open it on their phone, scroll through the experience, and keep the link forever.
+
+## Pages
+
+- [Home](https://xenium-sites.com/): Overview, how it works, occasions, examples, pricing, FAQ, request form
+- [Sample Birthday Experience](https://xenium-sites.com/experience/birthday): Full preview of a birthday Xenium
+- [Sample Anniversary Experience](https://xenium-sites.com/experience/anniversary): Full preview of a 10-year anniversary Xenium
+- [Sample Proposal Experience](https://xenium-sites.com/experience/proposal): Full preview of a proposal Xenium
+- [Sample Memorial Experience](https://xenium-sites.com/experience/memorial): Full preview of a memorial tribute Xenium
+- [Sample Retirement Experience](https://xenium-sites.com/experience/retirement): Full preview of a retirement Xenium
+- [Sample Corporate Experience](https://xenium-sites.com/experience/corporate): Full preview of an employee appreciation Xenium
+- [Privacy Policy](https://xenium-sites.com/privacy): Data handling, retention, user rights
+- [Terms of Service](https://xenium-sites.com/terms): Order terms, refunds, content rights, governing law
+
+## Pricing
+
+- Single tier: ₹750 INR for the complete Xenium experience
+- Includes: up to 15 photos and videos, personalized messages, background music, private shareable link, mobile-optimized design, timeline, animated text, QR code, guest messages, priority delivery
+- Delivery: 48–72 hours from confirmed order
+- Payment: UPI, debit/credit cards, net banking via secure payment partner
+
+## Contact
+
+- Email: xeniumgifts@gmail.com
+- Instagram: https://www.instagram.com/xenium.sites/
+
+## What makes Xenium different
+
+- Hand-crafted by humans, not template-generated
+- Cinematic design language with custom animations
+- Multi-sensory: photos, video, music and animated text
+- Private link with optional password protection — no recipient sign-up required
+- Built for India: WhatsApp-shareable, INR pricing, India-cultural sensitivity for occasions

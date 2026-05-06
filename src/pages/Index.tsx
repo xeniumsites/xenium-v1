@@ -9,20 +9,20 @@ import Features from "@/components/xenium/Features";
 import HowItWorks from "@/components/xenium/HowItWorks";
 import Transformation from "@/components/xenium/Transformation";
 import SampleExperiences from "@/components/xenium/SampleExperiences";
-import EmotionalStrip from "@/components/xenium/EmotionalStrip";
 import Comparison from "@/components/xenium/Comparison";
 import Audience from "@/components/xenium/Audience";
+import SocialProof from "@/components/xenium/SocialProof";
 import Pricing from "@/components/xenium/Pricing";
 import RequestForm from "@/components/xenium/RequestForm";
 import FAQ from "@/components/xenium/FAQ";
 import FinalCTA from "@/components/xenium/FinalCTA";
 import Footer from "@/components/xenium/Footer";
+import StickyMobileCTA from "@/components/xenium/StickyMobileCTA";
 
 const Index = () => {
   useEffect(() => {
     const hash = window.location.hash;
     if (hash) {
-      // Wait for sections to render before scrolling
       const id = setTimeout(() => {
         document.querySelector(hash)?.scrollIntoView({ behavior: "smooth" });
       }, 100);
@@ -33,25 +33,28 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background relative">
       <StarField />
-      <div className="relative" style={{ zIndex: 1 }}>
-      <Navbar />
-      <Hero />
-      <WhatIsXenium />
-      <XeniumPreview />
-      <Occasions />
-      <Features />
-      <HowItWorks />
-      <Transformation />
-      <SampleExperiences />
-      <EmotionalStrip />
-      <Comparison />
-      <Audience />
-      <Pricing />
-      <RequestForm />
-      <FAQ />
-      <FinalCTA />
-      <Footer />
+      <div className="relative" style={{ zIndex: 2 }}>
+        <Navbar />
+        <main>
+          <Hero />
+          <WhatIsXenium />
+          <XeniumPreview />
+          <Occasions />
+          <Features />
+          <HowItWorks />
+          <Transformation />
+          <SampleExperiences />
+          <Comparison />
+          <Audience />
+          <SocialProof />
+          <Pricing />
+          <RequestForm />
+          <FAQ />
+          <FinalCTA />
+        </main>
+        <Footer />
       </div>
+      <StickyMobileCTA />
     </div>
   );
 };

@@ -1,40 +1,41 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
+import { createPaymentLink } from '../_shared/razorpay.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
+
+const SITE_URL = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://xenium-sites.com'
+const DEFAULT_AMOUNT_PAISE = Number(Deno.env.get('XENIUM_DEFAULT_AMOUNT_PAISE') ?? '75000')
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const body = await req.json();
-    const { occasion, recipientName, recipientRelation, senderName, senderEmail, senderPhone, mood, features, story, deadline } = body;
+    const body = await req.json()
+    const { occasion, recipientName, recipientRelation, senderName, senderEmail, senderPhone, mood, features, story, deadline } = body
 
-    // Validate required fields
     if (!occasion || !recipientName || !senderName || !senderEmail || !mood || !features?.length || !story || !deadline) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      })
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
       return new Response(JSON.stringify({ error: 'Invalid email address' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      })
     }
 
-    // Store in database
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
     const { data: inserted, error: dbError } = await supabase
       .from('xenium_requests')
@@ -43,34 +44,99 @@ serve(async (req) => {
         recipient_name: recipientName,
         recipient_relation: recipientRelation || null,
         sender_name: senderName,
-        sender_email: senderEmail,
+        sender_email: String(senderEmail).trim().toLowerCase(),
         sender_phone: senderPhone || null,
         mood,
         features,
         story,
         deadline,
+        amount_paise: DEFAULT_AMOUNT_PAISE,
       })
-      .select('id')
-      .single();
+      .select('id, short_code, sender_email, sender_name, occasion, amount_paise, currency')
+      .single()
 
-    if (dbError) {
-      console.error('DB insert error:', dbError);
-      throw new Error('Failed to save request');
+    if (dbError || !inserted) {
+      console.error('DB insert error:', dbError)
+      throw new Error('Failed to save request')
     }
 
-    console.log('Xenium request saved successfully for:', senderEmail);
+    console.log('Xenium request saved successfully', inserted.id, inserted.short_code)
 
-    // Notify admin via transactional email (non-blocking on failure).
-    // Use direct fetch with explicit service-role auth headers because
-    // send-transactional-email has verify_jwt = true and supabase.functions.invoke
-    // does not reliably forward the service-role JWT for server-to-server calls.
+    // Create the Razorpay payment link.
+    let paymentLinkUrl: string | null = null
+    let paymentStatus: 'created' | 'pending' = 'pending'
+    try {
+      const link = await createPaymentLink({
+        amountPaise: inserted.amount_paise,
+        description: `Xenium experience for ${occasion}`,
+        referenceId: inserted.short_code ?? inserted.id,
+        customer: {
+          name: senderName,
+          email: inserted.sender_email,
+          contact: senderPhone || undefined,
+        },
+        notes: {
+          request_id: inserted.id,
+          short_code: inserted.short_code ?? '',
+          occasion,
+        },
+        callbackUrl: `${SITE_URL}/track/${inserted.short_code ?? inserted.id}?paid=1`,
+        expireBy: Math.floor(Date.now() / 1000) + 7 * 24 * 3600,
+        notifyByEmail: false,
+      })
+      paymentLinkUrl = link.short_url
+      paymentStatus = 'created'
+      await supabase
+        .from('xenium_requests')
+        .update({
+          payment_link_id: link.id,
+          payment_link_url: link.short_url,
+          payment_status: 'created',
+        })
+        .eq('id', inserted.id)
+    } catch (e) {
+      console.error('Payment link creation failed (non-fatal):', e)
+    }
+
+    // Customer-facing email with payment link (if available).
+    if (paymentLinkUrl) {
+      try {
+        const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${supabaseKey}`,
+            apikey: supabaseKey,
+          },
+          body: JSON.stringify({
+            templateName: 'customer-payment-link',
+            recipientEmail: inserted.sender_email,
+            idempotencyKey: `payment-link-${inserted.id}`,
+            templateData: {
+              senderName,
+              occasion,
+              shortCode: inserted.short_code,
+              paymentLinkUrl,
+              amount: `₹${(inserted.amount_paise / 100).toLocaleString('en-IN')}`,
+              currency: inserted.currency,
+              trackUrl: `${SITE_URL}/track/${inserted.short_code ?? inserted.id}`,
+            },
+          }),
+        })
+        if (!res.ok) console.error('customer payment-link email failed', res.status, await res.text())
+      } catch (e) {
+        console.error('customer payment-link email exception', e)
+      }
+    }
+
+    // Admin notification (existing behavior).
     try {
       const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseKey}`,
-          'apikey': supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          apikey: supabaseKey,
         },
         body: JSON.stringify({
           templateName: 'new-xenium-request',
@@ -81,35 +147,42 @@ serve(async (req) => {
             recipientName,
             recipientRelation: recipientRelation || '',
             senderName,
-            senderEmail,
+            senderEmail: inserted.sender_email,
             senderPhone: senderPhone || '',
             mood,
             features,
             story,
             deadline,
+            shortCode: inserted.short_code,
+            paymentLinkUrl: paymentLinkUrl ?? '(creation failed)',
             submittedAt: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
           },
         }),
-      });
-      if (!res.ok) {
-        const txt = await res.text();
-        console.error('Email notify error:', res.status, txt);
-      } else {
-        console.log('Email notify enqueued for new request', inserted.id);
-      }
+      })
+      if (!res.ok) console.error('admin notify email failed', res.status, await res.text())
     } catch (e) {
-      console.error('Email notify exception:', e);
+      console.error('admin notify exception', e)
     }
 
-    return new Response(JSON.stringify({ success: true, message: 'Request received successfully' }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Request received successfully',
+        shortCode: inserted.short_code,
+        id: inserted.id,
+        paymentLinkUrl,
+        paymentStatus,
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    )
   } catch (error) {
-    console.error('Error processing request:', error);
+    console.error('Error processing request:', error)
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    })
   }
-});
+})

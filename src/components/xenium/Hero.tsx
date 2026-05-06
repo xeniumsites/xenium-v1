@@ -1,15 +1,15 @@
 import { motion } from "framer-motion";
-import { Sparkles, Play, Music, ChevronDown } from "lucide-react";
+import { Sparkles, Play, Music, ChevronDown, Clock, Lock, MapPin, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import phoneMockup from "@/assets/phone-mockup-screen.jpg";
 
 const typewriterMessages = [
-  "Happy 10th Anniversary, my love...",
-  "Happy Birthday, Mom...",
+  "Happy 10th Anniversary, my love…",
+  "Happy Birthday, Mom…",
   "Will you marry me?",
-  "In loving memory of Dad...",
-  "Thank you for 25 years of service...",
-  "To the best friend I ever had...",
+  "In loving memory of Dad…",
+  "Thank you for 25 years of service…",
+  "To the best friend I ever had…",
 ];
 
 function useTypewriter(messages: string[], typeSpeed = 60, deleteSpeed = 35, pauseTime = 2200) {
@@ -53,106 +53,122 @@ export default function Hero() {
   };
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background glows */}
-      <div className="absolute inset-0 pointer-events-none">
-
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-xenium-violet-deep/15 blur-[120px] animate-glow-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-xenium-rose/10 blur-[100px] animate-glow-pulse" style={{ animationDelay: "1.5s" }} />
-        <div className="absolute top-1/2 right-1/3 w-[300px] h-[300px] rounded-full bg-xenium-amber/8 blur-[80px] animate-glow-pulse" style={{ animationDelay: "3s" }} />
+    <section
+      id="home"
+      className="relative min-h-[100svh] flex items-center justify-center overflow-hidden pt-24 sm:pt-28 pb-12"
+      aria-labelledby="hero-heading"
+    >
+      {/* Background glows — clamped to viewport so they don't overflow on small phones */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div className="absolute top-1/4 left-1/4 w-[min(70vw,500px)] h-[min(70vw,500px)] -translate-x-1/2 rounded-full bg-xenium-violet-deep/15 blur-[120px] animate-glow-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-[min(60vw,400px)] h-[min(60vw,400px)] translate-x-1/2 rounded-full bg-xenium-rose/10 blur-[100px] animate-glow-pulse" style={{ animationDelay: "1.5s" }} />
+        <div className="absolute top-1/2 right-1/3 w-[min(50vw,300px)] h-[min(50vw,300px)] rounded-full bg-xenium-amber/[0.08] blur-[80px] animate-glow-pulse" style={{ animationDelay: "3s" }} />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 pt-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 w-full">
+        <div className="grid lg:grid-cols-[1.1fr_1fr] gap-10 sm:gap-12 lg:gap-16 items-center">
           {/* Left: Text content */}
           <div className="text-center lg:text-left">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: "easeOut" }}
-            >
-              <p className="text-xenium-amber font-sans text-sm tracking-[0.3em] uppercase mb-8">
-                Premium Digital Gifting
-              </p>
-              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-light leading-[1.1] mb-6">
-                Personalized digital gifts
-                <br />
-                <span className="gradient-text font-medium italic">for feelings that deserve more than a text message.</span>
-              </h1>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: "easeOut" }}>
+              <span className="inline-flex items-center gap-2 text-xenium-amber font-sans text-[10px] sm:text-xs tracking-[0.3em] uppercase mb-5 sm:mb-6 px-3 py-1.5 rounded-full border border-xenium-amber/20 bg-xenium-amber/5">
+                <Sparkles size={10} className="text-xenium-amber" />
+                Premium Digital Gifting · India
+              </span>
             </motion.div>
-
-            <motion.p
+            <motion.h1
+              id="hero-heading"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.3 }}
-              className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 leading-relaxed font-light"
+              transition={{ duration: 0.9, ease: "easeOut", delay: 0.1 }}
+              className="font-display text-[2.5rem] sm:text-5xl md:text-6xl lg:text-7xl font-light leading-[1.05] mb-5 sm:mb-6 [text-wrap:balance]"
             >
-              Xenium creates personalized digital gifts and cinematic experiences for birthdays, proposals, anniversaries, memorials, and meaningful life moments — because some feelings deserve more than a text message.
+              Personalized digital gifts
+              <br className="hidden sm:block" />{" "}
+              <span className="gradient-text font-medium italic">for feelings that deserve more than a text.</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.25 }}
+              className="text-base md:text-lg text-muted-foreground/90 max-w-xl mx-auto lg:mx-0 mb-3 leading-relaxed font-light [text-wrap:pretty]"
+            >
+              Hand-crafted cinematic experiences for birthdays, proposals, anniversaries, memorials and the moments that
+              shouldn't fade. Delivered as a private link in <span className="text-foreground font-medium">48–72 hours</span>.
             </motion.p>
 
             <motion.p
-              initial={{ opacity: 0, y: 25 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.45 }}
-              className="text-sm md:text-base text-foreground/40 italic max-w-xl mx-auto lg:mx-0 mb-10 font-display"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.7, delay: 0.4 }}
+              className="text-sm md:text-base text-foreground/40 italic max-w-xl mx-auto lg:mx-0 mb-8 sm:mb-10 font-display"
             >
               For someone you love. For a moment that matters.
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4 mb-6"
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 sm:gap-4 mb-6"
             >
               <button
+                type="button"
                 onClick={() => scrollTo("#create")}
-                className="gradient-full text-foreground font-semibold px-8 py-4 rounded-full text-base hover:opacity-90 transition-all glow-violet flex items-center gap-2 hover:shadow-[0_0_60px_-10px_hsl(var(--xenium-violet-deep)/0.6)] whitespace-nowrap"
+                className="gradient-full text-foreground font-semibold px-7 py-4 rounded-full text-base hover:opacity-95 transition-all glow-violet inline-flex items-center justify-center gap-2 hover:shadow-[0_0_60px_-10px_hsl(var(--xenium-violet-deep)/0.6)] whitespace-nowrap min-h-[52px]"
               >
                 <Sparkles size={18} />
                 Create Your Xenium
               </button>
               <button
+                type="button"
                 onClick={() => scrollTo("#examples")}
-                className="glass-card text-foreground font-medium px-8 py-4 rounded-full text-base hover:bg-muted/30 transition-all flex items-center gap-2 hover:border-xenium-violet-mid/40 whitespace-nowrap"
+                className="glass-card text-foreground font-medium px-7 py-4 rounded-full text-base hover:bg-muted/30 transition-all inline-flex items-center justify-center gap-2 hover:border-xenium-violet-mid/40 whitespace-nowrap min-h-[52px]"
               >
                 <Play size={16} />
-                View Sample Experience
+                See a Sample
               </button>
             </motion.div>
 
-            <motion.p
+            {/* Trust strip */}
+            <motion.ul
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.9 }}
-              className="text-muted-foreground/60 text-xs tracking-wide text-center lg:text-left"
+              transition={{ duration: 0.6, delay: 0.7 }}
+              className="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 text-[11px] sm:text-xs text-muted-foreground/70 mb-2"
             >
-              Made for birthdays, anniversaries, proposals, memorials, love stories, retirements, and more.
-            </motion.p>
+              <li className="inline-flex items-center gap-1.5">
+                <Clock size={12} className="text-xenium-amber/80" /> 48–72 hr delivery
+              </li>
+              <li className="inline-flex items-center gap-1.5">
+                <Lock size={12} className="text-xenium-amber/80" /> Private link
+              </li>
+              <li className="inline-flex items-center gap-1.5">
+                <MapPin size={12} className="text-xenium-amber/80" /> Made in India · ₹750
+              </li>
+            </motion.ul>
           </div>
 
           {/* Right: Phone mockup */}
           <motion.div
-            initial={{ opacity: 0, y: 60 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.5 }}
-            className="relative flex justify-center"
+            transition={{ duration: 1, delay: 0.4 }}
+            className="relative flex justify-center order-first lg:order-last"
           >
-            {/* Phone frame */}
             <motion.div
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              className="relative w-[280px] md:w-[320px]"
+              className="relative w-[240px] sm:w-[280px] md:w-[320px]"
             >
-              {/* Phone shell */}
-              <div className="relative rounded-[2.5rem] overflow-hidden border-2 border-foreground/10 shadow-2xl"
+              <div
+                className="relative rounded-[2.5rem] overflow-hidden border-2 border-foreground/10 shadow-2xl"
                 style={{
-                  boxShadow: "0 25px 80px -12px hsl(var(--xenium-violet-deep) / 0.4), 0 0 60px -20px hsl(var(--xenium-rose) / 0.2)"
-                }}>
-                {/* Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-background rounded-b-2xl z-10" />
-                
-                {/* Screen content */}
+                  boxShadow:
+                    "0 25px 80px -12px hsl(var(--xenium-violet-deep) / 0.4), 0 0 60px -20px hsl(var(--xenium-rose) / 0.2)",
+                }}
+              >
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 sm:w-32 h-5 sm:h-6 bg-background rounded-b-2xl z-10" />
                 <div className="relative bg-background">
                   <img
                     src={phoneMockup}
@@ -160,12 +176,13 @@ export default function Hero() {
                     className="w-full h-auto"
                     width={640}
                     height={1280}
+                    loading="eager"
+                    decoding="async"
                   />
-                  
-                  {/* Typewriter overlay at bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/60 to-transparent p-5 pt-10">
-                    <div className="font-display text-sm italic text-foreground/60 min-h-[1.2rem]">
-                      "{typedText}<span className="animate-typewriter-cursor">|</span>"
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/60 to-transparent p-4 sm:p-5 pt-10">
+                    <div className="font-display text-[13px] sm:text-sm italic text-foreground/60 min-h-[1.2rem]">
+                      &ldquo;{typedText}
+                      <span className="animate-typewriter-cursor">|</span>&rdquo;
                     </div>
                     <div className="flex items-center gap-2 mt-2">
                       <Music size={10} className="text-xenium-amber/50 animate-icon-sway" />
@@ -179,22 +196,21 @@ export default function Hero() {
                     </div>
                   </div>
                 </div>
-
-                {/* Home bar */}
                 <div className="bg-background py-2 flex justify-center">
-                  <div className="w-24 h-1 rounded-full bg-foreground/20" />
+                  <div className="w-20 sm:w-24 h-1 rounded-full bg-foreground/20" />
                 </div>
               </div>
             </motion.div>
 
-            {/* Floating accent card */}
+            {/* Floating accent cards — hidden on small phones */}
             <motion.div
               animate={{ y: [0, -5, 0], x: [0, 3, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute -left-4 md:-left-8 top-1/3 glass-card px-4 py-3 rounded-xl"
+              className="hidden sm:flex flex-col absolute -left-2 md:-left-8 top-1/3 glass-card px-4 py-3 rounded-xl"
               style={{ boxShadow: "0 8px 30px -10px hsl(var(--xenium-violet-deep) / 0.3)" }}
+              aria-hidden="true"
             >
-              <p className="text-[10px] text-muted-foreground/50 mb-1">Photos & Videos</p>
+              <p className="text-[10px] text-muted-foreground/50 mb-1">Photos &amp; Videos</p>
               <div className="flex gap-1.5">
                 <div className="w-6 h-6 rounded bg-xenium-violet-deep/30" />
                 <div className="w-6 h-6 rounded bg-xenium-rose/20" />
@@ -202,14 +218,16 @@ export default function Hero() {
               </div>
             </motion.div>
 
-            {/* Floating timeline card */}
             <motion.div
               animate={{ y: [0, 5, 0], x: [0, -3, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-              className="absolute -right-4 md:-right-8 bottom-1/4 glass-card px-4 py-3 rounded-xl"
+              className="hidden sm:flex flex-col absolute -right-2 md:-right-8 bottom-1/4 glass-card px-4 py-3 rounded-xl"
               style={{ boxShadow: "0 8px 30px -10px hsl(var(--xenium-rose) / 0.3)" }}
+              aria-hidden="true"
             >
-              <p className="text-[10px] text-muted-foreground/50 mb-1">Timeline</p>
+              <p className="text-[10px] text-muted-foreground/50 mb-1 flex items-center gap-1">
+                <Heart size={9} className="text-xenium-rose/70" /> Timeline
+              </p>
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-xenium-amber/50" />
@@ -224,15 +242,18 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        {/* Scroll indicator */}
-        <motion.div
+        {/* Scroll indicator — hide on short viewports */}
+        <motion.button
+          type="button"
+          onClick={() => scrollTo("#what-is-xenium")}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
-          className="flex justify-center mt-16"
+          transition={{ delay: 1.5 }}
+          className="hidden sm:flex justify-center mt-12 sm:mt-16 mx-auto text-muted-foreground/40 hover:text-foreground/70 transition-colors"
+          aria-label="Scroll to learn more"
         >
-          <ChevronDown size={20} className="text-muted-foreground/30 animate-bounce" />
-        </motion.div>
+          <ChevronDown size={20} className="animate-bounce" />
+        </motion.button>
       </div>
     </section>
   );

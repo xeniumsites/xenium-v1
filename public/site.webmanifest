@@ -1,0 +1,19 @@
+{
+  "name": "Xenium — Personalized Digital Gifts",
+  "short_name": "Xenium",
+  "description": "Premium personalized digital gifting and cinematic experiences. Hand-crafted in 48–72 hours. From ₹750.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0C0C14",
+  "theme_color": "#0C0C14",
+  "lang": "en-IN",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

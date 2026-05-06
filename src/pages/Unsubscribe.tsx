@@ -12,6 +12,10 @@ export default function Unsubscribe() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    document.title = 'Unsubscribe | Xenium';
+  }, []);
+
+  useEffect(() => {
     if (!token) { setState('invalid'); return; }
     fetch(`${FN_URL}?token=${encodeURIComponent(token)}`, { headers: { apikey: ANON } })
       .then(r => r.json())

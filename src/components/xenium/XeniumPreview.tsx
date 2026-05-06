@@ -205,7 +205,15 @@ export default function XeniumPreview() {
                             transition={{ duration: 0.5, delay: i * 0.12 }}
                             className="rounded-xl overflow-hidden"
                           >
-                            <img src={src} alt="" className="w-full h-full object-cover" />
+                            <img
+                              src={src}
+                              alt={`Sample memory ${i + 1}`}
+                              loading="lazy"
+                              decoding="async"
+                              width={200}
+                              height={200}
+                              className="w-full h-full object-cover"
+                            />
                           </motion.div>
                         ))}
                       </div>
