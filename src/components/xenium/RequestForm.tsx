@@ -46,7 +46,7 @@ import {
   countWords,
 } from "@/lib/validation";
 
-const occasionIcons: Record<(typeof OCCASIONS)[number], React.ComponentType<{ size?: number; className?: string }>> = {
+const occasionIcons: Record<(typeof OCCASIONS)[number], LucideIcon> = {
   Birthday: Cake,
   Anniversary: Heart,
   Proposal: Diamond,
