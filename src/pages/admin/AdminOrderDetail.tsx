@@ -233,7 +233,7 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Input({ label, value, onChange, ...rest }: { label: string; value: string; onChange: (v: string) => void } & React.InputHTMLAttributes<HTMLInputElement>) {
+function Input({ label, value, onChange, ...rest }: { label: string; value: string; onChange: (v: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">) {
   return (
     <div>
       <p className="text-[11px] uppercase tracking-widest text-muted-foreground/60 mb-1">{label}</p>
@@ -248,7 +248,7 @@ function Input({ label, value, onChange, ...rest }: { label: string; value: stri
   );
 }
 
-function Textarea({ label, value, onChange, ...rest }: { label: string; value: string; onChange: (v: string) => void } & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+function Textarea({ label, value, onChange, ...rest }: { label: string; value: string; onChange: (v: string) => void } & Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "onChange" | "value">) {
   return (
     <div>
       <p className="text-[11px] uppercase tracking-widest text-muted-foreground/60 mb-1">{label}</p>

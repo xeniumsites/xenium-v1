@@ -19,7 +19,7 @@ export function useAdminAuth(): AdminAuthState {
         if (!cancelled) setState({ session: null, isAdmin: null, loading: false });
         return;
       }
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("admin_users")
         .select("user_id")
         .eq("user_id", session.user.id)

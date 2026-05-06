@@ -38,7 +38,7 @@ export default function AdminLogin() {
     // Re-check admin status; useAdminAuth will pick up the new session.
     const { data } = await supabase.auth.getUser();
     if (data?.user) {
-      const { data: adm } = await supabase.from("admin_users").select("user_id").eq("user_id", data.user.id).maybeSingle();
+      const { data: adm } = await (supabase as any).from("admin_users").select("user_id").eq("user_id", data.user.id).maybeSingle();
       if (!adm) {
         await supabase.auth.signOut();
         setError("This account is not an admin. Contact the site owner.");

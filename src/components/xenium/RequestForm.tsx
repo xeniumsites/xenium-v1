@@ -31,6 +31,7 @@ import {
   ShieldCheck,
   Lock,
   Mail,
+  type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -45,7 +46,7 @@ import {
   countWords,
 } from "@/lib/validation";
 
-const occasionIcons: Record<(typeof OCCASIONS)[number], React.ComponentType<{ size?: number; className?: string }>> = {
+const occasionIcons: Record<(typeof OCCASIONS)[number], LucideIcon> = {
   Birthday: Cake,
   Anniversary: Heart,
   Proposal: Diamond,
@@ -56,7 +57,7 @@ const occasionIcons: Record<(typeof OCCASIONS)[number], React.ComponentType<{ si
   Other: HelpCircle,
 };
 
-const featureIcons: Record<(typeof FEATURES)[number], React.ComponentType<{ size?: number; className?: string }>> = {
+const featureIcons: Record<(typeof FEATURES)[number], LucideIcon> = {
   "Photo Gallery": ImageIcon,
   "Video Embed": Video,
   Timeline: Clock,
