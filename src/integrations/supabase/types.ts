@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -125,48 +146,131 @@ export type Database = {
         }
         Relationships: []
       }
+      tracking_otps: {
+        Row: {
+          attempts: number
+          code_hash: string
+          consumed_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          request_id: string
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          consumed_at?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          request_id: string
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          consumed_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_otps_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "xenium_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       xenium_requests: {
         Row: {
+          admin_notes: string | null
+          amount_paise: number
           created_at: string
+          currency: string
           deadline: string | null
+          delivery_url: string | null
           features: string[]
           id: string
+          is_manual: boolean
           mood: string
           occasion: string
+          paid_at: string | null
+          payment_link_id: string | null
+          payment_link_url: string | null
+          payment_status: string
+          production_status: string
+          razorpay_payment_id: string | null
           recipient_name: string
           recipient_relation: string | null
           sender_email: string
           sender_name: string
           sender_phone: string | null
+          short_code: string | null
           story: string
+          tracking_email_verified_at: string | null
+          updated_at: string
         }
         Insert: {
+          admin_notes?: string | null
+          amount_paise?: number
           created_at?: string
+          currency?: string
           deadline?: string | null
+          delivery_url?: string | null
           features?: string[]
           id?: string
+          is_manual?: boolean
           mood: string
           occasion: string
+          paid_at?: string | null
+          payment_link_id?: string | null
+          payment_link_url?: string | null
+          payment_status?: string
+          production_status?: string
+          razorpay_payment_id?: string | null
           recipient_name: string
           recipient_relation?: string | null
           sender_email: string
           sender_name: string
           sender_phone?: string | null
+          short_code?: string | null
           story: string
+          tracking_email_verified_at?: string | null
+          updated_at?: string
         }
         Update: {
+          admin_notes?: string | null
+          amount_paise?: number
           created_at?: string
+          currency?: string
           deadline?: string | null
+          delivery_url?: string | null
           features?: string[]
           id?: string
+          is_manual?: boolean
           mood?: string
           occasion?: string
+          paid_at?: string | null
+          payment_link_id?: string | null
+          payment_link_url?: string | null
+          payment_status?: string
+          production_status?: string
+          razorpay_payment_id?: string | null
           recipient_name?: string
           recipient_relation?: string | null
           sender_email?: string
           sender_name?: string
           sender_phone?: string | null
+          short_code?: string | null
           story?: string
+          tracking_email_verified_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -183,6 +287,8 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      generate_short_code: { Args: never; Returns: string }
+      is_admin: { Args: { uid: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
