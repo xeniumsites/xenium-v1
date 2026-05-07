@@ -277,7 +277,7 @@ async function handleResendEmail(ctx: AdminContext, body: Record<string, unknown
   const { data: row } = await ctx.serviceClient
     .from('xenium_requests')
     .select('*')
-    .or(`id.eq.${id},short_code.eq.${id}`)
+    .eq(lookupBy(id).col, lookupBy(id).val)
     .maybeSingle()
   if (!row) return json(404, { error: 'not_found' })
   if (!row.payment_link_url) return json(400, { error: 'no_payment_link' })
