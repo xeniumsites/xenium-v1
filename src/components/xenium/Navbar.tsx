@@ -10,6 +10,7 @@ const links = [
   { label: "Examples", href: "#examples" },
   { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
+  { label: "Track Order", href: "/track", external: true },
 ];
 
 export default function Navbar() {
