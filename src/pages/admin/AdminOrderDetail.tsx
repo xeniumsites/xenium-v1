@@ -317,7 +317,7 @@ function Select({ label, value, onChange, options }: { label: string; value: str
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-muted/20 border border-border/60 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-xenium-violet-mid/40"
+        className="w-full bg-background border border-border/60 rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-xenium-violet-mid/40 [&>option]:bg-background [&>option]:text-foreground"
       >
         {options.map((o) => (
           <option key={o} value={o}>{o.replace(/_/g, " ")}</option>
