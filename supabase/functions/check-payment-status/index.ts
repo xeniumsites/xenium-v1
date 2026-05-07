@@ -30,12 +30,14 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, serviceKey)
 
   // Allow lookup by short_code (XEN-…) or full UUID.
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(code)
+  const lookupColumn = isUuid ? 'id' : 'short_code'
   const { data: row } = await supabase
     .from('xenium_requests')
     .select(
       'id, short_code, payment_link_id, payment_link_url, payment_status, paid_at, production_status, sender_email, occasion, recipient_name, amount_paise, currency',
     )
-    .or(`short_code.eq.${code},id.eq.${code}`)
+    .eq(lookupColumn, code)
     .maybeSingle()
 
   if (!row) return json(404, { error: 'not_found' })

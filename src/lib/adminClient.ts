@@ -90,3 +90,7 @@ export async function adminCreateManualOrder(input: {
 export async function adminResendPaymentEmail(id: string): Promise<{ ok: boolean }> {
   return await call<{ ok: boolean }>("resend_payment_email", { id });
 }
+
+export async function adminDeleteOrder(id: string): Promise<{ ok: boolean }> {
+  return await call<{ ok: boolean }>("delete", { id });
+}

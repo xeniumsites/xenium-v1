@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, Save, Mail, ExternalLink, Copy } from "lucide-react";
-import { AdminOrder, adminGetOrder, adminResendPaymentEmail, adminUpdateOrder } from "@/lib/adminClient";
+import { ArrowLeft, Loader2, Save, Mail, ExternalLink, Copy, Trash2, CheckCircle2 } from "lucide-react";
+import { AdminOrder, adminDeleteOrder, adminGetOrder, adminResendPaymentEmail, adminUpdateOrder } from "@/lib/adminClient";
 import { formatINR } from "@/lib/paymentClient";
 
 const PAYMENT_OPTIONS = ["pending", "created", "paid", "failed", "cancelled", "expired", "refunded", "waived"];
@@ -102,6 +102,39 @@ export default function AdminOrderDetail() {
     }
   };
 
+  const markComplete = async () => {
+    setSaveBusy(true);
+    setError(null);
+    try {
+      const res = await adminUpdateOrder(
+        order.short_code,
+        { production_status: "delivered", payment_status: order.payment_status === "pending" || order.payment_status === "created" ? "paid" : order.payment_status },
+        { emailCustomer: true },
+      );
+      setOrder(res.order);
+      setProductionStatus(res.order.production_status);
+      setPaymentStatus(res.order.payment_status);
+      setSavedFlash("Marked complete & customer notified.");
+      setTimeout(() => setSavedFlash(null), 2500);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setSaveBusy(false);
+    }
+  };
+
+  const remove = async () => {
+    if (!confirm(`Delete order ${order.short_code}? This cannot be undone.`)) return;
+    setSaveBusy(true);
+    try {
+      await adminDeleteOrder(order.short_code);
+      navigate("/admin");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delete failed");
+      setSaveBusy(false);
+    }
+  };
+
   const copy = (s: string) => navigator.clipboard?.writeText(s).catch(() => {});
 
   return (
@@ -144,6 +177,20 @@ export default function AdminOrderDetail() {
               {resendBusy ? <Loader2 size={11} className="animate-spin" /> : <Mail size={11} />} Resend payment email
             </button>
           )}
+          <button
+            onClick={markComplete}
+            disabled={saveBusy}
+            className="text-xs px-3 min-h-[36px] rounded-full border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 inline-flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <CheckCircle2 size={11} /> Mark complete
+          </button>
+          <button
+            onClick={remove}
+            disabled={saveBusy}
+            className="text-xs px-3 min-h-[36px] rounded-full border border-xenium-rose/40 text-xenium-rose hover:bg-xenium-rose/10 inline-flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <Trash2 size={11} /> Delete
+          </button>
         </div>
       </div>
 
