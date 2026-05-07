@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Plus, ExternalLink } from "lucide-react";
-import { AdminOrder, adminListOrders } from "@/lib/adminClient";
+import { Loader2, Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Plus, ExternalLink, Trash2 } from "lucide-react";
+import { AdminOrder, adminListOrders, adminDeleteOrder } from "@/lib/adminClient";
 import { formatINR, paymentStatusLabel, productionStatusLabel } from "@/lib/paymentClient";
 
 const PAGE_SIZE = 25;
