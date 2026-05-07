@@ -285,6 +285,25 @@ async function handleResendEmail(ctx: AdminContext, body: Record<string, unknown
   return json(200, { ok: true })
 }
 
+async function handleDelete(ctx: AdminContext, body: Record<string, unknown>) {
+  const id = (body.id as string | undefined)?.trim()
+  if (!id) return json(400, { error: 'id_required' })
+  const lk = lookupBy(id)
+  const { data: row } = await ctx.serviceClient
+    .from('xenium_requests')
+    .select('id')
+    .eq(lk.col, lk.val)
+    .maybeSingle()
+  if (!row) return json(404, { error: 'not_found' })
+  // Best-effort cleanup of related rows
+  await ctx.serviceClient.from('tracking_otps').delete().eq('request_id', row.id)
+  const { error } = await ctx.serviceClient.from('xenium_requests').delete().eq('id', row.id)
+  if (error) {
+    console.error('delete error', error)
+    return json(500, { error: 'db_error' })
+  }
+  return json(200, { ok: true })
+
 async function sendPaymentLinkEmail(
   ctx: AdminContext,
   row: { id: string; sender_email: string; sender_name: string; occasion: string; short_code: string; amount_paise: number; currency: string },
