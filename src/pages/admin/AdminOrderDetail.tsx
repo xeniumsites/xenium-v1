@@ -102,6 +102,39 @@ export default function AdminOrderDetail() {
     }
   };
 
+  const markComplete = async () => {
+    setSaveBusy(true);
+    setError(null);
+    try {
+      const res = await adminUpdateOrder(
+        order.short_code,
+        { production_status: "delivered", payment_status: order.payment_status === "pending" || order.payment_status === "created" ? "paid" : order.payment_status },
+        { emailCustomer: true },
+      );
+      setOrder(res.order);
+      setProductionStatus(res.order.production_status);
+      setPaymentStatus(res.order.payment_status);
+      setSavedFlash("Marked complete & customer notified.");
+      setTimeout(() => setSavedFlash(null), 2500);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setSaveBusy(false);
+    }
+  };
+
+  const remove = async () => {
+    if (!confirm(`Delete order ${order.short_code}? This cannot be undone.`)) return;
+    setSaveBusy(true);
+    try {
+      await adminDeleteOrder(order.short_code);
+      navigate("/admin");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delete failed");
+      setSaveBusy(false);
+    }
+  };
+
   const copy = (s: string) => navigator.clipboard?.writeText(s).catch(() => {});
 
   return (
