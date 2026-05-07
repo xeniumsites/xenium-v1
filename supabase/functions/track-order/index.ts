@@ -47,12 +47,14 @@ Deno.serve(async (req) => {
   const requireOtp = (Deno.env.get('TRACK_REQUIRE_OTP') ?? 'false').toLowerCase() === 'true'
   const supabase = createClient(supabaseUrl, serviceKey)
 
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(code)
+  const lookupColumn = isUuid ? 'id' : 'short_code'
   const { data: row } = await supabase
     .from('xenium_requests')
     .select(
       'id, short_code, sender_email, sender_name, occasion, recipient_name, amount_paise, currency, payment_status, production_status, paid_at, payment_link_url, delivery_url, created_at',
     )
-    .or(`short_code.eq.${code},id.eq.${code}`)
+    .eq(lookupColumn, code)
     .maybeSingle()
 
   // Always respond uniformly to avoid email enumeration.
