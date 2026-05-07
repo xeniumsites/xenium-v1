@@ -62,6 +62,12 @@ serve(async (req) => {
 
     console.log('Xenium request saved successfully', inserted.id, inserted.short_code)
 
+    // Sanitize phone for Razorpay (digits only, 8-14 chars). Drop if invalid.
+    const digits = (senderPhone || '').replace(/\D/g, '')
+    // Strip leading country code prefix duplicates; keep last 12 digits max
+    const trimmed = digits.length > 14 ? digits.slice(-14) : digits
+    const rzpContact = trimmed.length >= 8 && trimmed.length <= 14 ? trimmed : undefined
+
     // Create the Razorpay payment link.
     let paymentLinkUrl: string | null = null
     let paymentStatus: 'created' | 'pending' = 'pending'
@@ -73,7 +79,7 @@ serve(async (req) => {
         customer: {
           name: senderName,
           email: inserted.sender_email,
-          contact: senderPhone || undefined,
+          contact: rzpContact,
         },
         notes: {
           request_id: inserted.id,
