@@ -177,6 +177,20 @@ export default function AdminOrderDetail() {
               {resendBusy ? <Loader2 size={11} className="animate-spin" /> : <Mail size={11} />} Resend payment email
             </button>
           )}
+          <button
+            onClick={markComplete}
+            disabled={saveBusy}
+            className="text-xs px-3 min-h-[36px] rounded-full border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 inline-flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <CheckCircle2 size={11} /> Mark complete
+          </button>
+          <button
+            onClick={remove}
+            disabled={saveBusy}
+            className="text-xs px-3 min-h-[36px] rounded-full border border-xenium-rose/40 text-xenium-rose hover:bg-xenium-rose/10 inline-flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <Trash2 size={11} /> Delete
+          </button>
         </div>
       </div>
 
