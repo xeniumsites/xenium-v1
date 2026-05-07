@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, Save, Mail, ExternalLink, Copy } from "lucide-react";
-import { AdminOrder, adminGetOrder, adminResendPaymentEmail, adminUpdateOrder } from "@/lib/adminClient";
+import { ArrowLeft, Loader2, Save, Mail, ExternalLink, Copy, Trash2, CheckCircle2 } from "lucide-react";
+import { AdminOrder, adminDeleteOrder, adminGetOrder, adminResendPaymentEmail, adminUpdateOrder } from "@/lib/adminClient";
 import { formatINR } from "@/lib/paymentClient";
 
 const PAYMENT_OPTIONS = ["pending", "created", "paid", "failed", "cancelled", "expired", "refunded", "waived"];
