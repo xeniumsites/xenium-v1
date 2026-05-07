@@ -303,6 +303,7 @@ async function handleDelete(ctx: AdminContext, body: Record<string, unknown>) {
     return json(500, { error: 'db_error' })
   }
   return json(200, { ok: true })
+}
 
 async function sendPaymentLinkEmail(
   ctx: AdminContext,
