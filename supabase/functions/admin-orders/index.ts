@@ -177,7 +177,7 @@ async function handleUpdate(ctx: AdminContext, body: Record<string, unknown>) {
   const { data, error } = await ctx.serviceClient
     .from('xenium_requests')
     .update(safe)
-    .or(`id.eq.${id},short_code.eq.${id}`)
+    .eq(lookupBy(id).col, lookupBy(id).val)
     .select('*')
     .maybeSingle()
 
