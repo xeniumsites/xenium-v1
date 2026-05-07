@@ -138,7 +138,7 @@ async function handleGet(ctx: AdminContext, body: Record<string, unknown>) {
   const { data, error } = await ctx.serviceClient
     .from('xenium_requests')
     .select('*')
-    .or(`id.eq.${id},short_code.eq.${id}`)
+    .eq(lookupBy(id).col, lookupBy(id).val)
     .maybeSingle()
   if (error) {
     console.error('get error', error)
