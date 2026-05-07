@@ -81,10 +81,17 @@ Deno.serve(async (req) => {
       return await handleCreateManual(ctx, body)
     case 'resend_payment_email':
       return await handleResendEmail(ctx, body)
+    case 'delete':
+      return await handleDelete(ctx, body)
     default:
       return json(400, { error: 'unknown_action' })
   }
 })
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+function lookupBy(id: string): { col: 'id' | 'short_code'; val: string } {
+  return UUID_RE.test(id) ? { col: 'id', val: id } : { col: 'short_code', val: id }
+}
 
 async function handleList(ctx: AdminContext, body: Record<string, unknown>) {
   const limit = Math.min(Number(body.limit ?? 50), 200)
