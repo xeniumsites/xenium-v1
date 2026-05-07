@@ -87,11 +87,12 @@ Deno.serve(async (req) => {
       currency: row.currency,
       description: `Xenium experience for ${row.occasion}`,
       referenceId: row.short_code ?? row.id,
-      customer: {
-        name: row.sender_name,
-        email: row.sender_email,
-        contact: row.sender_phone ?? undefined,
-      },
+      customer: (() => {
+        const d = (row.sender_phone || '').replace(/\D/g, '')
+        const t = d.length > 14 ? d.slice(-14) : d
+        const contact = t.length >= 8 && t.length <= 14 ? t : undefined
+        return { name: row.sender_name, email: row.sender_email, contact }
+      })(),
       notes: {
         request_id: row.id,
         short_code: row.short_code ?? '',
