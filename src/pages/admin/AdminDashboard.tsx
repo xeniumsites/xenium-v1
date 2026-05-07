@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Plus, ExternalLink } from "lucide-react";
-import { AdminOrder, adminListOrders } from "@/lib/adminClient";
+import { Loader2, Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Plus, ExternalLink, Trash2 } from "lucide-react";
+import { AdminOrder, adminListOrders, adminDeleteOrder } from "@/lib/adminClient";
 import { formatINR, paymentStatusLabel, productionStatusLabel } from "@/lib/paymentClient";
 
 const PAGE_SIZE = 25;
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
             setPaymentStatus(e.target.value);
             setPage(0);
           }}
-          className="px-4 py-2.5 rounded-full bg-muted/20 border border-border/60 text-sm"
+          className="px-4 py-2.5 rounded-full bg-background border border-border/60 text-sm text-foreground [&>option]:bg-background [&>option]:text-foreground"
           aria-label="Filter by payment status"
         >
           <option value="">All payments</option>
@@ -115,7 +115,7 @@ export default function AdminDashboard() {
             setProductionStatus(e.target.value);
             setPage(0);
           }}
-          className="px-4 py-2.5 rounded-full bg-muted/20 border border-border/60 text-sm"
+          className="px-4 py-2.5 rounded-full bg-background border border-border/60 text-sm text-foreground [&>option]:bg-background [&>option]:text-foreground"
           aria-label="Filter by production status"
         >
           <option value="">All production</option>
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
           <option value="delivered">Delivered</option>
           <option value="cancelled">Cancelled</option>
         </select>
-        <button type="submit" className="px-4 py-2.5 rounded-full bg-muted/30 text-sm hover:bg-muted/50 inline-flex items-center gap-1.5">
+        <button type="submit" className="px-4 py-2.5 rounded-full bg-muted/30 text-foreground text-sm hover:bg-muted/50 inline-flex items-center gap-1.5">
           <Filter size={13} /> Apply
         </button>
       </form>
@@ -148,18 +148,29 @@ export default function AdminDashboard() {
                 <th className="p-4">Payment</th>
                 <th className="p-4">Production</th>
                 <th className="p-4">Created</th>
+                <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading && items.length === 0 && (
-                <tr><td colSpan={7} className="p-8 text-center text-muted-foreground"><Loader2 className="animate-spin inline" size={14} /> Loading…</td></tr>
+                <tr><td colSpan={8} className="p-8 text-center text-muted-foreground"><Loader2 className="animate-spin inline" size={14} /> Loading…</td></tr>
               )}
               {!loading && items.length === 0 && (
-                <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No orders match these filters.</td></tr>
+                <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No orders match these filters.</td></tr>
               )}
               {items.map((o) => {
                 const pay = paymentStatusLabel(o.payment_status);
                 const prod = productionStatusLabel(o.production_status);
+                const onDelete = async () => {
+                  if (!confirm(`Delete order ${o.short_code}? This cannot be undone.`)) return;
+                  try {
+                    await adminDeleteOrder(o.short_code);
+                    setItems((prev) => prev.filter((x) => x.id !== o.id));
+                    setTotal((t) => Math.max(0, t - 1));
+                  } catch (e) {
+                    setError(e instanceof Error ? e.message : "Delete failed");
+                  }
+                };
                 return (
                   <tr key={o.id} className="border-b border-border/40 hover:bg-muted/10">
                     <td className="p-4">
@@ -194,6 +205,16 @@ export default function AdminDashboard() {
                     <td className="p-4"><Pill tone={prod.tone}>{prod.label}</Pill></td>
                     <td className="p-4 text-xs text-muted-foreground">
                       {new Date(o.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
+                    </td>
+                    <td className="p-4 text-right">
+                      <button
+                        type="button"
+                        onClick={onDelete}
+                        title="Delete order"
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-xenium-rose/40 text-xenium-rose hover:bg-xenium-rose/10"
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     </td>
                   </tr>
                 );

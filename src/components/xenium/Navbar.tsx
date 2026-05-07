@@ -10,6 +10,7 @@ const links = [
   { label: "Examples", href: "#examples" },
   { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
+  { label: "Track Order", href: "/track", external: true },
 ];
 
 export default function Navbar() {
@@ -50,7 +51,7 @@ export default function Navbar() {
   // Scrollspy
   useEffect(() => {
     if (location.pathname !== "/") return;
-    const ids = links.map((l) => l.href.slice(1));
+    const ids = links.filter((l) => !l.external).map((l) => l.href.slice(1));
     const sections = ids
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => Boolean(el));
@@ -73,6 +74,10 @@ export default function Navbar() {
 
   const scrollTo = (href: string) => {
     setMobileOpen(false);
+    if (href.startsWith("/")) {
+      navigate(href);
+      return;
+    }
     if (location.pathname !== "/") {
       navigate("/" + href);
       return;

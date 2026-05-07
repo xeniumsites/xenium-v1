@@ -21,6 +21,10 @@ import StickyMobileCTA from "@/components/xenium/StickyMobileCTA";
 
 const Index = () => {
   useEffect(() => {
+    // Disable browser scroll restoration so the page always starts at the top (Home).
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
     const hash = window.location.hash;
     if (hash) {
       const id = setTimeout(() => {
@@ -28,6 +32,7 @@ const Index = () => {
       }, 100);
       return () => clearTimeout(id);
     }
+    window.scrollTo(0, 0);
   }, []);
 
   return (
