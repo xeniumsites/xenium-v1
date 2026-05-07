@@ -97,7 +97,7 @@ export default function AdminDashboard() {
             setPaymentStatus(e.target.value);
             setPage(0);
           }}
-          className="px-4 py-2.5 rounded-full bg-muted/20 border border-border/60 text-sm"
+          className="px-4 py-2.5 rounded-full bg-background border border-border/60 text-sm text-foreground [&>option]:bg-background [&>option]:text-foreground"
           aria-label="Filter by payment status"
         >
           <option value="">All payments</option>
@@ -115,7 +115,7 @@ export default function AdminDashboard() {
             setProductionStatus(e.target.value);
             setPage(0);
           }}
-          className="px-4 py-2.5 rounded-full bg-muted/20 border border-border/60 text-sm"
+          className="px-4 py-2.5 rounded-full bg-background border border-border/60 text-sm text-foreground [&>option]:bg-background [&>option]:text-foreground"
           aria-label="Filter by production status"
         >
           <option value="">All production</option>
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
           <option value="delivered">Delivered</option>
           <option value="cancelled">Cancelled</option>
         </select>
-        <button type="submit" className="px-4 py-2.5 rounded-full bg-muted/30 text-sm hover:bg-muted/50 inline-flex items-center gap-1.5">
+        <button type="submit" className="px-4 py-2.5 rounded-full bg-muted/30 text-foreground text-sm hover:bg-muted/50 inline-flex items-center gap-1.5">
           <Filter size={13} /> Apply
         </button>
       </form>
