@@ -148,18 +148,29 @@ export default function AdminDashboard() {
                 <th className="p-4">Payment</th>
                 <th className="p-4">Production</th>
                 <th className="p-4">Created</th>
+                <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading && items.length === 0 && (
-                <tr><td colSpan={7} className="p-8 text-center text-muted-foreground"><Loader2 className="animate-spin inline" size={14} /> Loading…</td></tr>
+                <tr><td colSpan={8} className="p-8 text-center text-muted-foreground"><Loader2 className="animate-spin inline" size={14} /> Loading…</td></tr>
               )}
               {!loading && items.length === 0 && (
-                <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No orders match these filters.</td></tr>
+                <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No orders match these filters.</td></tr>
               )}
               {items.map((o) => {
                 const pay = paymentStatusLabel(o.payment_status);
                 const prod = productionStatusLabel(o.production_status);
+                const onDelete = async () => {
+                  if (!confirm(`Delete order ${o.short_code}? This cannot be undone.`)) return;
+                  try {
+                    await adminDeleteOrder(o.short_code);
+                    setItems((prev) => prev.filter((x) => x.id !== o.id));
+                    setTotal((t) => Math.max(0, t - 1));
+                  } catch (e) {
+                    setError(e instanceof Error ? e.message : "Delete failed");
+                  }
+                };
                 return (
                   <tr key={o.id} className="border-b border-border/40 hover:bg-muted/10">
                     <td className="p-4">
@@ -194,6 +205,16 @@ export default function AdminDashboard() {
                     <td className="p-4"><Pill tone={prod.tone}>{prod.label}</Pill></td>
                     <td className="p-4 text-xs text-muted-foreground">
                       {new Date(o.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
+                    </td>
+                    <td className="p-4 text-right">
+                      <button
+                        type="button"
+                        onClick={onDelete}
+                        title="Delete order"
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-xenium-rose/40 text-xenium-rose hover:bg-xenium-rose/10"
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     </td>
                   </tr>
                 );
