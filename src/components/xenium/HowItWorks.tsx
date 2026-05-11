@@ -21,7 +21,7 @@ const steps = [
     title: "We craft your Xenium",
     desc: "Our design team weaves your media into a cinematic experience.",
     icon: Wand2,
-    duration: "48–72 hrs",
+    duration: "Same day · within 24 hrs",
   },
   {
     num: "04",

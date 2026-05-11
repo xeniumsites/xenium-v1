@@ -59,8 +59,8 @@ const CustomerPaymentLinkEmail = ({
 
         <Text style={amberSmall}>What happens next?</Text>
         <Text style={bodyStyle}>
-          Once payment confirms, our design team begins crafting your Xenium. Most experiences are
-          delivered within 48–72 hours. We'll email you the moment it's ready.
+          Once payment confirms, our design team begins crafting your Xenium. Orders before 12 PM IST are
+          delivered the same day; otherwise within 24 hours. We'll email you the moment it's ready.
         </Text>
 
         <Text style={bodyStyle}>

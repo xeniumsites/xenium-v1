@@ -40,3 +40,11 @@ verify_jwt = false
 # admin_users membership before returning data.
 [functions.admin-orders]
 verify_jwt = true
+
+# Public chatbot powered by Lovable AI Gateway.
+[functions.xenium-chat]
+verify_jwt = false
+
+# Public stats counter (delivered orders).
+[functions.get-public-stats]
+verify_jwt = false

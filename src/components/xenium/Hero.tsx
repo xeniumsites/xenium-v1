@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
-import { Sparkles, Play, Music, ChevronDown, Clock, Lock, MapPin, Heart } from "lucide-react";
+import { Sparkles, Play, Music, ChevronDown, Lock, MapPin, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import phoneMockup from "@/assets/phone-mockup-screen.jpg";
+import CutoffPill from "./CutoffPill";
+import StatsStrip from "./StatsStrip";
+import { DELIVERY_LONG_PLAIN } from "@/lib/delivery";
 
 const typewriterMessages = [
   "Happy 10th Anniversary, my love…",
@@ -94,7 +97,7 @@ export default function Hero() {
               className="text-base md:text-lg text-muted-foreground/90 max-w-xl mx-auto lg:mx-0 mb-3 leading-relaxed font-light [text-wrap:pretty]"
             >
               Hand-crafted cinematic experiences for birthdays, proposals, anniversaries, memorials and the moments that
-              shouldn't fade. Delivered as a private link in <span className="text-foreground font-medium">48–72 hours</span>.
+              shouldn't fade. <span className="text-foreground font-medium">{DELIVERY_LONG_PLAIN}</span>.
             </motion.p>
 
             <motion.p
@@ -135,10 +138,10 @@ export default function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.7 }}
-              className="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 text-[11px] sm:text-xs text-muted-foreground/70 mb-2"
+              className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-2 text-[11px] sm:text-xs text-muted-foreground/70 mb-2"
             >
-              <li className="inline-flex items-center gap-1.5">
-                <Clock size={12} className="text-xenium-amber/80" /> 48–72 hr delivery
+              <li>
+                <CutoffPill />
               </li>
               <li className="inline-flex items-center gap-1.5">
                 <Lock size={12} className="text-xenium-amber/80" /> Private link
@@ -147,6 +150,15 @@ export default function Hero() {
                 <MapPin size={12} className="text-xenium-amber/80" /> Made in India · ₹750
               </li>
             </motion.ul>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.85 }}
+              className="lg:max-w-xl"
+            >
+              <StatsStrip />
+            </motion.div>
           </div>
 
           {/* Right: Phone mockup */}

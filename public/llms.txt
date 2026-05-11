@@ -1,6 +1,6 @@
 # Xenium
 
-> Xenium is a premium personalized digital gifting service based in India. We hand-craft cinematic digital experiences — combining photos, video, music, written messages and animated text into a single private link — for birthdays, anniversaries, proposals, memorials, retirements and corporate appreciation moments. Each Xenium is delivered in 48–72 hours and starts at ₹750.
+> Xenium is a premium personalized digital gifting service based in India. We hand-craft cinematic digital experiences — combining photos, video, music, written messages and animated text into a single private link — for birthdays, anniversaries, proposals, memorials, retirements and corporate appreciation moments. Orders placed before 12 PM IST are delivered the same day; otherwise within 24 hours. All experiences are ₹750.
 
 A Xenium is not a card, a slideshow, a video editor or a template. It is a custom-designed microsite built around one specific person and one specific story. Recipients open it on their phone, scroll through the experience, and keep the link forever.
 
@@ -20,7 +20,8 @@ A Xenium is not a card, a slideshow, a video editor or a template. It is a custo
 
 - Single tier: ₹750 INR for the complete Xenium experience
 - Includes: up to 15 photos and videos, personalized messages, background music, private shareable link, mobile-optimized design, timeline, animated text, QR code, guest messages, priority delivery
-- Delivery: 48–72 hours from confirmed order
+- Delivery: same-day if ordered before 12 PM IST, otherwise within 24 hours of payment confirmation
+- Guarantee: 100% Happiness Guarantee — free unlimited revisions or a full refund
 - Payment: UPI, debit/credit cards, net banking via secure payment partner
 
 ## Contact
