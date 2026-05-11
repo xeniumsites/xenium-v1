@@ -43,20 +43,22 @@ export default function Terms() {
           </section>
 
           <section>
-            <h2 className="font-display text-2xl text-foreground mb-3">3. Order, delivery & revisions</h2>
+            <h2 className="font-display text-2xl text-foreground mb-3">3. Order, delivery &amp; revisions</h2>
             <p>
               After you submit a request we will confirm receipt and contact you to finalize details and
-              payment. Typical delivery takes 2–5 days depending on complexity. Each order includes one round
-              of minor revisions; substantial changes may incur additional charges agreed in advance.
+              payment. Orders placed before 12 PM IST are delivered the same day; orders placed after 12 PM
+              IST are delivered within 24 hours of payment confirmation. Every order includes free unlimited
+              revisions until you are satisfied with the result.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display text-2xl text-foreground mb-3">4. Payment & refunds</h2>
+            <h2 className="font-display text-2xl text-foreground mb-3">4. Payment, refunds &amp; the Happiness Guarantee</h2>
             <p>
-              Payment is collected before production begins. Because each Xenium is custom-made, payments are
-              non-refundable once work has started. If we are unable to deliver your experience for any reason
-              on our side, you will receive a full refund.
+              Payment is collected before production begins. Every order is backed by our 100% Happiness
+              Guarantee: if you are not satisfied with the final Xenium after revisions, or if we are unable
+              to deliver the experience for any reason on our side, you will receive a full refund — no
+              questions asked. Refunds are issued to the original payment method within 5–7 business days.
             </p>
           </section>
 

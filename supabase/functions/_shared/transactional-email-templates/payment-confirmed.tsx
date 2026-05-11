@@ -38,11 +38,11 @@ const PaymentConfirmedEmail = ({ senderName, occasion, shortCode, trackUrl }: Pr
           </Text>
           <Text style={row}>
             <span style={labelStyle}>2. </span>
-            <span style={valueStyle}>You'll receive your private Xenium link within 48–72 hours.</span>
+            <span style={valueStyle}>You'll receive your private Xenium link the same day if ordered before 12 PM IST — otherwise within 24 hours.</span>
           </Text>
           <Text style={row}>
             <span style={labelStyle}>3. </span>
-            <span style={valueStyle}>One round of revisions is included if anything needs tweaking.</span>
+            <span style={valueStyle}>Free unlimited revisions are included until you're delighted.</span>
           </Text>
         </Section>
 

@@ -292,7 +292,7 @@ export default function RequestForm() {
             <div className="glass-card p-3 sm:p-4 rounded-xl">
               <Sparkles size={14} className="text-xenium-violet-mid mb-2" />
               <p className="text-foreground/85 font-medium">Receive your Xenium</p>
-              <p className="text-muted-foreground/70 text-[11px] sm:text-xs">Private link, in 48–72 hrs</p>
+              <p className="text-muted-foreground/70 text-[11px] sm:text-xs">Same day · within 24 hrs</p>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
