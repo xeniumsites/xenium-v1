@@ -1,5 +1,8 @@
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { Check, Sparkles, Crown, Clock, Lock, RefreshCw, Heart, Image as ImageIcon, Music, Type, Users, Video, MessageSquareHeart, QrCode, Smartphone } from "lucide-react";
+import PaymentTrust from "./PaymentTrust";
+import GuaranteeBadge from "./GuaranteeBadge";
+import { DELIVERY_HEADLINE } from "@/lib/delivery";
 
 const includedGroups = [
   {
@@ -28,7 +31,7 @@ const includedGroups = [
     items: [
       { icon: Lock, label: "Private link, no recipient sign-up" },
       { icon: QrCode, label: "Printable QR code" },
-      { icon: RefreshCw, label: "One round of revisions" },
+      { icon: RefreshCw, label: "Free unlimited revisions" },
       { icon: Sparkles, label: "Priority design delivery" },
     ],
   },
@@ -113,9 +116,17 @@ export default function Pricing() {
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground/60">
-              <span className="inline-flex items-center gap-1.5"><Clock size={11} className="text-xenium-amber/70" /> Delivered in 48–72 hrs</span>
+              <span className="inline-flex items-center gap-1.5"><Clock size={11} className="text-xenium-amber/70" /> {DELIVERY_HEADLINE} · before 12 PM IST</span>
               <span className="inline-flex items-center gap-1.5"><Lock size={11} className="text-xenium-amber/70" /> Private &amp; secure</span>
-              <span className="inline-flex items-center gap-1.5"><RefreshCw size={11} className="text-xenium-amber/70" /> One revision included</span>
+              <span className="inline-flex items-center gap-1.5"><RefreshCw size={11} className="text-xenium-amber/70" /> Free unlimited revisions</span>
+            </div>
+
+            <div className="mt-6">
+              <GuaranteeBadge />
+            </div>
+
+            <div className="mt-5 pt-5 border-t border-border/40">
+              <PaymentTrust />
             </div>
           </div>
         </div>

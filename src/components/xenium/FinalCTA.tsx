@@ -1,5 +1,7 @@
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { Sparkles, Play, Clock, Lock, Heart } from "lucide-react";
+import GuaranteeBadge from "./GuaranteeBadge";
+import { DELIVERY_HEADLINE } from "@/lib/delivery";
 
 export default function FinalCTA() {
   const { ref, isVisible } = useScrollReveal();
@@ -43,11 +45,14 @@ export default function FinalCTA() {
             View Sample
           </button>
         </div>
-        <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground/60">
-          <li className="inline-flex items-center gap-1.5"><Clock size={11} className="text-xenium-amber/70" /> Delivered in 48–72 hrs</li>
+        <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground/60 mb-6">
+          <li className="inline-flex items-center gap-1.5"><Clock size={11} className="text-xenium-amber/70" /> {DELIVERY_HEADLINE} · before 12 PM IST</li>
           <li className="inline-flex items-center gap-1.5"><Lock size={11} className="text-xenium-amber/70" /> Private &amp; secure</li>
           <li className="inline-flex items-center gap-1.5"><Sparkles size={11} className="text-xenium-amber/70" /> Hand-crafted in India · ₹750</li>
         </ul>
+        <div className="max-w-md mx-auto">
+          <GuaranteeBadge />
+        </div>
       </div>
     </section>
   );

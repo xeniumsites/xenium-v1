@@ -14,11 +14,11 @@ export const faqs = [
   },
   {
     q: "How does the process work?",
-    a: "You fill out the request form (3 minutes). We email you within 24 hours to confirm details and collect any photos, videos or notes you want included. Our design team builds your Xenium, sends a preview, takes one round of revisions, and delivers the final private link — typically within 48–72 hours of confirmation.",
+    a: "You fill out the request form (3 minutes). We email you within 24 hours to confirm details and collect any photos, videos or notes you want included. Once payment is confirmed, our design team builds your Xenium and delivers the private link — same-day if you order before 12 PM IST, otherwise within 24 hours.",
   },
   {
-    q: "How long does it take to create?",
-    a: "Most Xeniums are delivered within 48–72 hours of confirmation. If your moment is sooner, flag it on the form and we'll do everything we can to meet the deadline — same-day turnarounds are possible for simpler experiences.",
+    q: "How fast can I get my Xenium?",
+    a: "Order before 12 PM IST and we deliver the same day. Order after that and you'll have it within 24 hours. If your moment is even sooner, flag the deadline on the form and we'll do everything we can to meet it.",
   },
   {
     q: "Is my Xenium private?",
@@ -30,7 +30,7 @@ export const faqs = [
   },
   {
     q: "What if I'm not happy with the result?",
-    a: "Every order includes one round of revisions to refine copy, swap photos, change music or adjust the design. If we're unable to deliver the experience for reasons on our side, you'll receive a full refund — see the Terms page for the full policy.",
+    a: "Every order is backed by our 100% Happiness Guarantee — free unlimited revisions until you love it, or a full refund. No questions asked. We'd rather lose the order than leave you with something that doesn't move you.",
   },
   {
     q: "What media can I include?",
