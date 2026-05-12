@@ -120,6 +120,23 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Founder note */}
+        <div className="border-t border-border pt-8 pb-8 mb-2">
+          <div className="max-w-2xl mx-auto rounded-2xl border border-border/60 bg-muted/10 backdrop-blur-sm px-5 py-5 sm:px-6 sm:py-6 flex items-start gap-4">
+            <div className="shrink-0 w-12 h-12 rounded-full gradient-full flex items-center justify-center font-display text-lg text-foreground">
+              A
+            </div>
+            <div className="text-sm leading-relaxed">
+              <p className="text-foreground font-medium mb-1">A note from the founder</p>
+              <p className="text-muted-foreground">
+                Built in India by Aman & a small team who care a lot about the moments you're celebrating.
+                Reply to any email — a real human will answer, usually within a few hours.
+                <span className="block mt-1 text-foreground/80">— Aman, Founder of Xenium</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="border-t border-border pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground/80">© {new Date().getFullYear()} Xenium. All rights reserved.</p>
           <nav aria-label="Legal" className="flex gap-6">
