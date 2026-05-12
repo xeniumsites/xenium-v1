@@ -66,7 +66,10 @@ export default function Privacy() {
           <section>
             <h2 className="font-display text-2xl text-foreground mb-3">5. Data retention & your rights</h2>
             <p>
-              We retain your data for as long as needed to deliver your experience and meet legal obligations.
+              Working media (the photos, videos and audio you upload for your experience) is automatically
+              removed from our active storage <strong className="text-foreground">90 days after delivery</strong>.
+              The published microsite stays available at its private link until you ask us to take it down.
+              Order records (name, email, order ID, payment reference) are retained as required by Indian tax law.
               You can request access to, correction of, or deletion of your personal data at any time by emailing{" "}
               <a href="mailto:xeniumgifts@gmail.com" className="text-foreground underline hover:text-xenium-amber transition-colors">
                 xeniumgifts@gmail.com
