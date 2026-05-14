@@ -89,6 +89,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background relative">
+      <Helmet>
+        <link rel="canonical" href="https://xenium-sites.com/" />
+        <meta property="og:url" content="https://xenium-sites.com/" />
+        <script type="application/ld+json">{JSON.stringify(SERVICE_JSONLD)}</script>
+        <script type="application/ld+json">{JSON.stringify(PRODUCT_JSONLD)}</script>
+        <script type="application/ld+json">{JSON.stringify(FAQ_JSONLD)}</script>
+      </Helmet>
       <StarField />
       <div className="relative" style={{ zIndex: 2 }}>
         <Navbar />
