@@ -1,16 +1,24 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 import Footer from "@/components/xenium/Footer";
 
 export default function Terms() {
   useEffect(() => {
-    document.title = "Terms of Service | Xenium";
     window.scrollTo(0, 0);
   }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Helmet>
+        <title>Terms of Service | Xenium</title>
+        <meta name="description" content="The terms covering Xenium orders, delivery timelines, revisions and our 100% Happiness Guarantee refund policy." />
+        <link rel="canonical" href="https://xenium-sites.com/terms" />
+        <meta property="og:title" content="Terms of Service | Xenium" />
+        <meta property="og:description" content="Order, delivery, revisions and refund terms for Xenium digital gift experiences." />
+        <meta property="og:url" content="https://xenium-sites.com/terms" />
+      </Helmet>
       <div className="max-w-3xl mx-auto px-6 pt-24 pb-20">
         <Link
           to="/"
