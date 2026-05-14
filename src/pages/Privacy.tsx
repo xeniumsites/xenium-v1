@@ -1,16 +1,24 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 import Footer from "@/components/xenium/Footer";
 
 export default function Privacy() {
   useEffect(() => {
-    document.title = "Privacy Policy | Xenium";
     window.scrollTo(0, 0);
   }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Helmet>
+        <title>Privacy Policy | Xenium</title>
+        <meta name="description" content="How Xenium collects, uses and protects the personal media and details you share to create your digital gift." />
+        <link rel="canonical" href="https://xenium-sites.com/privacy" />
+        <meta property="og:title" content="Privacy Policy | Xenium" />
+        <meta property="og:description" content="How Xenium collects, uses and protects the personal media and details you share." />
+        <meta property="og:url" content="https://xenium-sites.com/privacy" />
+      </Helmet>
       <div className="max-w-3xl mx-auto px-6 pt-24 pb-20">
         <Link
           to="/"
