@@ -129,9 +129,9 @@ export default function Footer() {
             <div className="text-sm leading-relaxed">
               <p className="text-foreground font-medium mb-1">A note from the founder</p>
               <p className="text-muted-foreground">
-                Built in India by Pranav Kumar & a small team who care a lot about the moments you're celebrating.
+                Built in India by the founders of Xenium & a small team who care a lot about the moments you're celebrating.
                 Reply to any email — a real human will answer, usually within a few hours.
-                <span className="block mt-1 text-foreground/80">— Pranav Kumar, Founder of Xenium</span>
+                <span className="block mt-1 text-foreground/80">— Founders of Xenium</span>
               </p>
             </div>
           </div>
