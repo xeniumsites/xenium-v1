@@ -124,7 +124,7 @@ export default function Footer() {
         <div className="border-t border-border pt-8 pb-8 mb-2">
           <div className="max-w-2xl mx-auto rounded-2xl border border-border/60 bg-muted/10 backdrop-blur-sm px-5 py-5 sm:px-6 sm:py-6 flex items-start gap-4">
             <div className="shrink-0 w-12 h-12 rounded-full gradient-full flex items-center justify-center font-display text-lg text-foreground">
-              A
+              X
             </div>
             <div className="text-sm leading-relaxed">
               <p className="text-foreground font-medium mb-1">A note from the founder</p>
