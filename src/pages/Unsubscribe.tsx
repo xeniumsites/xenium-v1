@@ -44,6 +44,19 @@ export default function Unsubscribe() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-background px-6">
+      <Helmet>
+        <title>Unsubscribe from Xenium emails</title>
+        <meta name="description" content="Manage your Xenium email preferences and unsubscribe from future marketing or transactional messages in one click." />
+        <link rel="canonical" href="https://xenium-sites.com/unsubscribe" />
+        <meta name="robots" content="noindex, follow" />
+        <meta property="og:title" content="Unsubscribe from Xenium emails" />
+        <meta property="og:description" content="Manage your Xenium email preferences and unsubscribe from future messages." />
+        <meta property="og:url" content="https://xenium-sites.com/unsubscribe" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Unsubscribe from Xenium emails" />
+        <meta name="twitter:description" content="Manage your Xenium email preferences and unsubscribe from future messages." />
+      </Helmet>
       <div className="max-w-md w-full text-center space-y-6 p-8 rounded-2xl border border-border/50 bg-card/50">
         <h1 className="font-serif text-3xl">Email preferences</h1>
         {state === 'loading' && <p className="text-muted-foreground">Loading…</p>}
