@@ -643,9 +643,25 @@ export default function ExperiencePreview() {
     : "Sample preview of a personalized Xenium digital gifting experience.";
   const canonicalUrl = `https://xenium-sites.com/experience/${slug ?? ""}`;
 
+  const helmet = (
+    <Helmet>
+      <title>{pageTitle}</title>
+      <meta name="description" content={pageDescription} />
+      <link rel="canonical" href={canonicalUrl} />
+      <meta property="og:title" content={pageTitle} />
+      <meta property="og:description" content={pageDescription} />
+      <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:type" content="article" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={pageTitle} />
+      <meta name="twitter:description" content={pageDescription} />
+    </Helmet>
+  );
+
   if (!exp) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
+        {helmet}
         <div className="text-center">
           <h1 className="font-display text-4xl mb-4">Experience not found</h1>
           <Link to="/" className="text-xenium-amber hover:underline">← Back to home</Link>
@@ -659,6 +675,7 @@ export default function ExperiencePreview() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      {helmet}
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50" aria-label="Experience preview navigation">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">

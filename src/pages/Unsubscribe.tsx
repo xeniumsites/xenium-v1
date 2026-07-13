@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 
 const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/handle-email-unsubscribe`;
@@ -10,10 +11,6 @@ export default function Unsubscribe() {
   const token = params.get('token');
   const [state, setState] = useState<'loading' | 'valid' | 'already' | 'invalid' | 'success' | 'error'>('loading');
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    document.title = 'Unsubscribe | Xenium';
-  }, []);
 
   useEffect(() => {
     if (!token) { setState('invalid'); return; }
