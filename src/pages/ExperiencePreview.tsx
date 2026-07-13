@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Heart, Play, Pause, Image as ImageIcon, MessageSquareHeart, Flame, Video, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -484,7 +485,7 @@ function VideoEmbed({
     >
       <div className="text-center mb-8">
         <Video size={20} className="text-xenium-amber mx-auto mb-3" />
-        <h3 className="font-display text-2xl md:text-3xl font-light">The Video</h3>
+        <h2 className="font-display text-2xl md:text-3xl font-light">The Video</h2>
       </div>
 
       <div
@@ -636,14 +637,31 @@ export default function ExperiencePreview() {
     return () => clearInterval(interval);
   }, [exp]);
 
-  useDocumentHead(
-    exp ? `${exp.title} — Xenium Experience Preview` : "Experience — Xenium",
-    exp ? `${exp.subtitle} A sample of the personalized Xenium digital experience.` : "Sample preview of a Xenium digital experience."
+  const pageTitle = exp ? `${exp.title} — Xenium Experience Preview` : "Experience — Xenium";
+  const pageDescription = exp
+    ? `${exp.subtitle} A sample ${exp.tag.toLowerCase()} from Xenium — personalized digital gifting for ${exp.dedicatedTo}.`.slice(0, 158)
+    : "Sample preview of a personalized Xenium digital gifting experience.";
+  const canonicalUrl = `https://xenium-sites.com/experience/${slug ?? ""}`;
+
+  const helmet = (
+    <Helmet>
+      <title>{pageTitle}</title>
+      <meta name="description" content={pageDescription} />
+      <link rel="canonical" href={canonicalUrl} />
+      <meta property="og:title" content={pageTitle} />
+      <meta property="og:description" content={pageDescription} />
+      <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:type" content="article" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={pageTitle} />
+      <meta name="twitter:description" content={pageDescription} />
+    </Helmet>
   );
 
   if (!exp) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
+        {helmet}
         <div className="text-center">
           <h1 className="font-display text-4xl mb-4">Experience not found</h1>
           <Link to="/" className="text-xenium-amber hover:underline">← Back to home</Link>
@@ -657,6 +675,7 @@ export default function ExperiencePreview() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      {helmet}
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50" aria-label="Experience preview navigation">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
@@ -797,7 +816,7 @@ export default function ExperiencePreview() {
                 <motion.img
                   key={activePhoto}
                   src={featuredPhoto.src}
-                  alt={featuredPhoto.label}
+                  alt={`${exp.dedicatedTo} — ${featuredPhoto.label} moment from their ${exp.tag.toLowerCase()}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
                   width={1024}
@@ -835,7 +854,7 @@ export default function ExperiencePreview() {
               >
                 <img
                   src={photo.src}
-                  alt={photo.label}
+                  alt={`${exp.dedicatedTo} — ${photo.label} photo from their ${exp.tag.toLowerCase()}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
                   width={512}
