@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Heart, Play, Pause, Image as ImageIcon, MessageSquareHeart, Flame, Video, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -484,7 +485,7 @@ function VideoEmbed({
     >
       <div className="text-center mb-8">
         <Video size={20} className="text-xenium-amber mx-auto mb-3" />
-        <h3 className="font-display text-2xl md:text-3xl font-light">The Video</h3>
+        <h2 className="font-display text-2xl md:text-3xl font-light">The Video</h2>
       </div>
 
       <div
@@ -636,10 +637,11 @@ export default function ExperiencePreview() {
     return () => clearInterval(interval);
   }, [exp]);
 
-  useDocumentHead(
-    exp ? `${exp.title} — Xenium Experience Preview` : "Experience — Xenium",
-    exp ? `${exp.subtitle} A sample of the personalized Xenium digital experience.` : "Sample preview of a Xenium digital experience."
-  );
+  const pageTitle = exp ? `${exp.title} — Xenium Experience Preview` : "Experience — Xenium";
+  const pageDescription = exp
+    ? `${exp.subtitle} A sample ${exp.tag.toLowerCase()} from Xenium — personalized digital gifting for ${exp.dedicatedTo}.`.slice(0, 158)
+    : "Sample preview of a personalized Xenium digital gifting experience.";
+  const canonicalUrl = `https://xenium-sites.com/experience/${slug ?? ""}`;
 
   if (!exp) {
     return (
@@ -797,7 +799,7 @@ export default function ExperiencePreview() {
                 <motion.img
                   key={activePhoto}
                   src={featuredPhoto.src}
-                  alt={featuredPhoto.label}
+                  alt={`${exp.dedicatedTo} — ${featuredPhoto.label} moment from their ${exp.tag.toLowerCase()}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
                   width={1024}
@@ -835,7 +837,7 @@ export default function ExperiencePreview() {
               >
                 <img
                   src={photo.src}
-                  alt={photo.label}
+                  alt={`${exp.dedicatedTo} — ${photo.label} photo from their ${exp.tag.toLowerCase()}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
                   width={512}
