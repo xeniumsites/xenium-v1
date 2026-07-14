@@ -4,9 +4,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import logo from "@/assets/xenium-logo.png";
 
 const links = [
-  { label: "Home", href: "#home" },
-  { label: "How It Works", href: "#how-it-works" },
+  // { label: "Home", href: "#home" },
   { label: "Occasions", href: "#occasions" },
+  { label: "How It Works", href: "#how-it-works" },
   { label: "Examples", href: "#examples" },
   { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
