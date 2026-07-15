@@ -16,7 +16,7 @@ const links = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeId, setActiveId] = useState<string>("home");
+  // const [activeId, setActiveId] = useState<string>("home");
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -94,14 +94,14 @@ export default function Navbar() {
       aria-label="Primary"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => scrollTo("#home")}
-          className="flex items-center gap-2 min-h-[44px]"
-          aria-label="Xenium home"
-        >
-          <img src={logo} alt="Xenium" className="h-8 sm:h-10 w-auto object-contain" width={40} height={40} />
-        </button>
+        {/*<button*/}
+        {/*  type="button"*/}
+        {/*  onClick={() => scrollTo("#home")}*/}
+        {/*  className="flex items-center gap-2 min-h-[44px]"*/}
+        {/*  aria-label="Xenium home"*/}
+        {/*>*/}
+        {/*  <img src={logo} alt="Xenium" className="h-8 sm:h-10 w-auto object-contain" width={40} height={40} />*/}
+        {/*</button>*/}
 
         <div className="hidden lg:flex items-center gap-7">
           {links.map((l) => {
