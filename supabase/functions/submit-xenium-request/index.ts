@@ -10,14 +10,55 @@ const corsHeaders = {
 const SITE_URL = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://xenium-sites.com'
 const DEFAULT_AMOUNT_PAISE = Number(Deno.env.get('XENIUM_DEFAULT_AMOUNT_PAISE') ?? '75000')
 
+// Best-effort in-memory rate limit per IP (per-instance only — this is a
+// spam/cost speed bump, not a hard guarantee under concurrent instances).
+const RATE_LIMIT = new Map<string, { count: number; resetAt: number }>()
+const RATE_WINDOW_MS = 10 * 60_000
+const RATE_MAX = 5
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const entry = RATE_LIMIT.get(ip)
+  if (!entry || entry.resetAt < now) {
+    RATE_LIMIT.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS })
+    return true
+  }
+  if (entry.count >= RATE_MAX) return false
+  entry.count += 1
+  return true
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    req.headers.get('cf-connecting-ip') ??
+    'anon'
+
+  if (!checkRateLimit(ip)) {
+    return new Response(JSON.stringify({ error: 'Too many requests — please try again later.' }), {
+      status: 429,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
   try {
     const body = await req.json()
-    const { occasion, recipientName, recipientRelation, senderName, senderEmail, senderPhone, mood, features, story, deadline } = body
+    const { occasion, recipientName, recipientRelation, senderName, senderEmail, senderPhone, mood, features, story, deadline, website } = body
+
+    // Honeypot: the real form strips this field before submitting, so any
+    // request that includes a non-empty `website` is a bot. Pretend success
+    // without touching the DB or sending any email.
+    if (typeof website === 'string' && website.length > 0) {
+      console.warn('Honeypot triggered, silently ignoring', { ip })
+      return new Response(
+        JSON.stringify({ success: true, message: 'Request received successfully', shortCode: 'XEN-000000', id: null, paymentLinkUrl: null, paymentStatus: 'pending' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
 
     if (!occasion || !recipientName || !senderName || !senderEmail || !mood || !features?.length || !story || !deadline) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {

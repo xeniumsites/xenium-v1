@@ -50,6 +50,23 @@ const PRODUCT_JSONLD = {
     priceCurrency: "INR",
     availability: "https://schema.org/InStock",
     url: "https://xenium-sites.com/#create",
+    hasMerchantReturnPolicy: {
+      "@type": "MerchantReturnPolicy",
+      applicableCountry: "IN",
+      returnPolicyCategory: "https://schema.org/MerchantReturnUnlimitedWindow",
+      returnMethod: "https://schema.org/KeepProduct",
+      returnFees: "https://schema.org/FreeReturn",
+    },
+    shippingDetails: {
+      "@type": "OfferShippingDetails",
+      shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "INR" },
+      shippingDestination: { "@type": "DefinedRegion", addressCountry: "IN" },
+      deliveryTime: {
+        "@type": "ShippingDeliveryTime",
+        handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 0, unitCode: "DAY" },
+        transitTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+      },
+    },
   },
 };
 
@@ -68,6 +85,23 @@ const SERVICE_JSONLD = {
     availability: "https://schema.org/InStock",
     url: "https://xenium-sites.com/#create",
     priceValidUntil: "2027-12-31",
+    hasMerchantReturnPolicy: {
+      "@type": "MerchantReturnPolicy",
+      applicableCountry: "IN",
+      returnPolicyCategory: "https://schema.org/MerchantReturnUnlimitedWindow",
+      returnMethod: "https://schema.org/KeepProduct",
+      returnFees: "https://schema.org/FreeReturn",
+    },
+    shippingDetails: {
+      "@type": "OfferShippingDetails",
+      shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "INR" },
+      shippingDestination: { "@type": "DefinedRegion", addressCountry: "IN" },
+      deliveryTime: {
+        "@type": "ShippingDeliveryTime",
+        handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 0, unitCode: "DAY" },
+        transitTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+      },
+    },
   },
 };
 
