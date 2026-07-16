@@ -216,9 +216,15 @@ serve(async (req) => {
         .catch((e) => console.error('admin notify exception', e))
     )
 
-    // Wait for both emails to be enqueued concurrently.
-    // This halves the blocking time before we return the response to the user.
-    await Promise.allSettled(emailPromises)
+    // Do not block the response while emails are sending.
+    // EdgeRuntime.waitUntil ensures the background task completes even after we return the response instantly.
+    // @ts-ignore - EdgeRuntime is provided globally by the Supabase Edge runtime
+    if (typeof EdgeRuntime !== 'undefined') {
+      // @ts-ignore
+      EdgeRuntime.waitUntil(Promise.allSettled(emailPromises))
+    } else {
+      Promise.allSettled(emailPromises).catch(console.error)
+    }
 
     return new Response(
       JSON.stringify({
