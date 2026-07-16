@@ -21,9 +21,15 @@ export default function AdminLayout() {
     return <Navigate to="/admin/login" replace state={{ from: location.pathname }} />;
   }
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/admin/login", { replace: true });
+  const signOut = () => {
+    // Forcefully remove the token immediately
+    localStorage.removeItem("xenium-auth-token-v3");
+    
+    // Attempt network signout but don't wait for it, preventing hangs
+    supabase.auth.signOut().catch(console.error);
+    
+    // Hard navigate instantly
+    window.location.href = "/admin/login";
   };
 
   return (

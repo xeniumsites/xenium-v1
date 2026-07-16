@@ -25,9 +25,10 @@ const PaymentConfirmedEmail = ({ senderName, occasion, shortCode, trackUrl }: Pr
         <Heading style={brand}>Xenium</Heading>
         <Heading style={h1}>Payment received, {senderName ?? 'friend'}.</Heading>
         <Text style={lead}>
-          Thank you. We've successfully received payment for your{' '}
-          {occasion ? occasion.toLowerCase() : ''} Xenium ({shortCode}). Our design team is now
-          beginning production.
+          Thank you for choosing Xenium! We've successfully received your payment for your{' '}
+          {occasion ? occasion.toLowerCase() : ''} Xenium ({shortCode}). 
+          <br /><br />
+          We will be doing our absolute best to craft a stunning and memorable experience for you. Our design team is now beginning production.
         </Text>
 
         <Section style={card}>

@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
   const { data: row } = await supabase
     .from('xenium_requests')
     .select(
-      'id, short_code, payment_link_id, payment_link_url, payment_status, paid_at, production_status, sender_email, occasion, recipient_name, amount_paise, currency',
+      'id, short_code, payment_link_id, payment_link_url, payment_status, paid_at, production_status, sender_email, sender_name, occasion, recipient_name, amount_paise, currency, created_at',
     )
     .eq(lookupColumn, code)
     .maybeSingle()
@@ -57,6 +57,34 @@ Deno.serve(async (req) => {
         }
         await supabase.from('xenium_requests').update(updates).eq('id', row.id)
         Object.assign(row, updates)
+
+        // If it transitioned to paid, send the confirmation email
+        if (mapped === 'paid') {
+          try {
+            const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${serviceKey}`,
+                apikey: serviceKey,
+              },
+              body: JSON.stringify({
+                templateName: 'payment-confirmed',
+                recipientEmail: row.sender_email,
+                idempotencyKey: `payment-confirmed-${row.id}`,
+                templateData: {
+                  senderName: row.sender_name,
+                  occasion: row.occasion,
+                  shortCode: row.short_code,
+                  trackUrl: `https://xenium-sites.com/track/${row.short_code}`,
+                },
+              }),
+            })
+            if (!res.ok) console.error('payment-confirmed email failed', res.status, await res.text())
+          } catch (e) {
+            console.error('payment-confirmed email exception', e)
+          }
+        }
       }
     } catch (e) {
       console.error('check-payment-status fetch failed', e)
@@ -74,6 +102,7 @@ Deno.serve(async (req) => {
     currency: row.currency,
     occasion: row.occasion,
     recipientName: row.recipient_name,
+    createdAt: row.created_at,
   })
 })
 

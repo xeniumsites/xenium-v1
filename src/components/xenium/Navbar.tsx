@@ -16,7 +16,7 @@ const links = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  // const [activeId, setActiveId] = useState<string>("home");
+  const [activeId, setActiveId] = useState<string>("home");
   const navigate = useNavigate();
   const location = useLocation();
 

@@ -36,11 +36,41 @@ export interface AdminListResult {
 }
 
 async function call<T>(action: string, body: Record<string, unknown> = {}): Promise<T> {
-  const { data, error } = await supabase.functions.invoke<T>("admin-orders", {
-    body: { action, ...body },
+  // Completely bypass gotrue-js promises which can hang during token refresh
+  const storageStr = localStorage.getItem("xenium-auth-token-v3");
+  if (!storageStr) throw new Error("No auth token in storage");
+  
+  let token = null;
+  try {
+    const parsed = JSON.parse(storageStr);
+    token = parsed?.session?.access_token || parsed?.access_token;
+  } catch (e) {
+    throw new Error("Invalid auth token format");
+  }
+  
+  if (!token) throw new Error("No auth token");
+
+  const url = import.meta.env.VITE_SUPABASE_URL + "/functions/v1/admin-orders";
+  
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ action, ...body }),
   });
-  if (error) throw new Error(error.message ?? "Admin request failed");
-  return data as T;
+
+  if (!res.ok) {
+    let err = "Admin request failed";
+    try {
+      const ebody = await res.json();
+      err = ebody.error || err;
+    } catch {}
+    throw new Error(err);
+  }
+
+  return await res.json() as T;
 }
 
 export async function adminListOrders(opts: {

@@ -56,7 +56,7 @@ export default function TrackOrder() {
       if (cancelled) return;
       attempt++;
       const fresh = await checkPaymentStatus(order.shortCode, email);
-      if (!cancelled && fresh) setOrder(fresh);
+      if (!cancelled && fresh) setOrder({ ...fresh, createdAt: fresh.createdAt || order.createdAt });
       if (!cancelled && fresh?.paymentStatus !== "paid" && attempt < 6) {
         setTimeout(tick, 4000);
       }
@@ -121,7 +121,7 @@ export default function TrackOrder() {
     if (!order) return;
     setLoading(true);
     const fresh = await checkPaymentStatus(order.shortCode, email);
-    if (fresh) setOrder(fresh);
+    if (fresh) setOrder({ ...fresh, createdAt: fresh.createdAt || order.createdAt });
     setLoading(false);
   };
 
@@ -161,9 +161,17 @@ export default function TrackOrder() {
         </header>
 
         {error && (
-          <div className="mb-5 p-4 rounded-xl border border-xenium-rose/30 bg-xenium-rose/5 text-xenium-rose text-sm flex items-start gap-2" role="alert">
-            <AlertCircle size={14} className="mt-0.5 shrink-0" />
-            <span>{error}</span>
+          <div className="mb-8 relative group animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-xenium-rose/40 to-red-500/40 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000" />
+            <div className="relative p-6 sm:p-8 rounded-2xl bg-black/60 backdrop-blur-xl border border-xenium-rose/20 flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 text-center sm:text-left">
+              <div className="shrink-0 w-12 h-12 rounded-full bg-xenium-rose/10 flex items-center justify-center border border-xenium-rose/20 shadow-[inset_0_0_15px_rgba(244,63,94,0.1)]">
+                <AlertCircle size={24} className="text-xenium-rose" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-xenium-rose mb-1">Order Not Found</h3>
+                <p className="text-white/70 text-sm">{error}</p>
+              </div>
+            </div>
           </div>
         )}
         {info && (
@@ -270,101 +278,107 @@ function OrderView({
   };
 
   return (
-    <div className="space-y-5">
-      <div className="glass-card p-6 sm:p-8">
-        <div className="flex items-start justify-between gap-4 mb-5">
-          <div>
-            <p className="text-[11px] tracking-[0.2em] uppercase text-xenium-amber/80 mb-1">Order ID</p>
+    <div className="space-y-6">
+      <div className="relative group">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-xenium-violet-mid to-xenium-amber rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200" />
+        <div className="relative glass-card p-6 sm:p-10 rounded-2xl bg-background/90 backdrop-blur-xl border border-white/10">
+          <div className="flex items-start justify-between gap-4 mb-8">
+            <div>
+              <p className="text-[10px] sm:text-[11px] font-medium tracking-[0.2em] uppercase text-xenium-amber mb-2">
+                Order ID
+              </p>
+              <button
+                type="button"
+                onClick={copyId}
+                className="font-mono text-2xl sm:text-3xl font-bold tracking-tight inline-flex items-center gap-3 hover:opacity-80 transition-opacity bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70"
+              >
+                {order.shortCode}
+                <Copy size={16} className="text-white/40 hover:text-white transition-colors" />
+              </button>
+            </div>
             <button
               type="button"
-              onClick={copyId}
-              className="text-foreground font-mono text-lg sm:text-xl inline-flex items-center gap-2 hover:text-xenium-amber transition-colors"
+              onClick={onRefresh}
+              disabled={loading}
+              className="text-xs font-medium text-white/50 hover:text-white transition-all flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full disabled:opacity-60"
+              aria-label="Refresh"
             >
-              {order.shortCode}
-              <Copy size={14} className="text-muted-foreground/60" />
+              {loading ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />} Refresh
             </button>
           </div>
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={loading}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 disabled:opacity-60"
-            aria-label="Refresh"
-          >
-            {loading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />} Refresh
-          </button>
-        </div>
 
-        <div className="grid sm:grid-cols-2 gap-4 mb-5">
-          <StatusBlock title="Payment" label={pay.label} tone={pay.tone} />
-          <StatusBlock title="Production" label={prod.label} tone={prod.tone} />
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm border-t border-border/50 pt-5">
-          <Detail label="Occasion" value={order.occasion} />
-          <Detail label="For" value={order.recipientName} />
-          <Detail label="Amount" value={`${formatINR(order.amountPaise)} ${order.currency}`} />
-          <Detail label="Submitted" value={created} />
-          {paidWhen && <Detail label="Paid" value={paidWhen} />}
-        </div>
-
-        {showPayCta && order.paymentLinkUrl && (
-          <div className="mt-6 pt-5 border-t border-border/50">
-            <p className="text-sm text-muted-foreground mb-3">Payment is pending. Use the secure link to complete it.</p>
-            <a
-              href={order.paymentLinkUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="gradient-full text-foreground font-semibold inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm w-full sm:w-auto min-h-[44px]"
-            >
-              <Sparkles size={14} /> Pay {formatINR(order.amountPaise)}
-              <ExternalLink size={14} />
-            </a>
+          <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 mb-8">
+            <StatusBlock title="Payment Status" label={pay.label} tone={pay.tone} />
+            <StatusBlock title="Production Status" label={prod.label} tone={prod.tone} />
           </div>
-        )}
 
-        {order.productionStatus === "delivered" && order.deliveryUrl && (
-          <div className="mt-6 pt-5 border-t border-border/50">
-            <p className="text-sm text-muted-foreground mb-3">Your Xenium is ready. Open the private link below to view and share.</p>
-            <a
-              href={order.deliveryUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="gradient-full text-foreground font-semibold inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm w-full sm:w-auto min-h-[44px]"
-            >
-              <Sparkles size={14} /> Open your Xenium
-              <ExternalLink size={14} />
-            </a>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-6 text-sm border-t border-white/5 pt-8">
+            <Detail label="Occasion" value={order.occasion} />
+            <Detail label="For" value={order.recipientName} />
+            <Detail label="Amount" value={`${formatINR(order.amountPaise)} ${order.currency}`} />
+            <Detail label="Submitted" value={created.split(",")[0]} />
           </div>
-        )}
+
+          {showPayCta && order.paymentLinkUrl && (
+            <div className="mt-8 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6 bg-xenium-amber/5 -mx-6 sm:-mx-10 -mb-6 sm:-mb-10 p-6 sm:p-10 rounded-b-2xl">
+              <div>
+                <h3 className="text-base font-medium text-xenium-amber mb-1">Payment Pending</h3>
+                <p className="text-sm text-white/60">Complete your payment securely to begin production.</p>
+              </div>
+              <a
+                href={order.paymentLinkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="gradient-full text-foreground font-bold inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full text-sm w-full sm:w-auto shadow-[0_0_20px_rgba(235,149,85,0.3)] hover:shadow-[0_0_30px_rgba(235,149,85,0.5)] transition-all scale-100 hover:scale-105 active:scale-95"
+              >
+                <Sparkles size={16} className="text-white" /> Pay {formatINR(order.amountPaise)}
+              </a>
+            </div>
+          )}
+
+          {order.productionStatus === "delivered" && order.deliveryUrl && (
+            <div className="mt-8 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6 bg-emerald-500/5 -mx-6 sm:-mx-10 -mb-6 sm:-mb-10 p-6 sm:p-10 rounded-b-2xl">
+              <div>
+                <h3 className="text-base font-medium text-emerald-400 mb-1">Your Xenium is Ready!</h3>
+                <p className="text-sm text-white/60">Click the button to view and share your beautiful gift.</p>
+              </div>
+              <a
+                href={order.deliveryUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full text-sm w-full sm:w-auto shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all scale-100 hover:scale-105 active:scale-95"
+              >
+                <Sparkles size={16} /> Open your Xenium
+              </a>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="text-center">
-        <button type="button" onClick={onReset} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5">
-          <ArrowLeft size={12} /> Look up a different order
+      <div className="text-center pt-2">
+        <button type="button" onClick={onReset} className="text-xs font-medium text-white/40 hover:text-white inline-flex items-center gap-2 transition-colors px-4 py-2 hover:bg-white/5 rounded-full">
+          <ArrowLeft size={14} /> Look up a different order
         </button>
       </div>
-
-      <p className="text-center text-[11px] text-muted-foreground/50 flex items-center justify-center gap-1.5">
-        <Clock size={11} /> Page refreshes the latest status from our payment partner on demand.
-      </p>
     </div>
   );
 }
 
 function StatusBlock({ title, label, tone }: { title: string; label: string; tone: "amber" | "violet" | "green" | "muted" | "red" | "rose" }) {
-  const palette: Record<typeof tone, string> = {
-    amber: "border-xenium-amber/40 bg-xenium-amber/10 text-xenium-amber",
-    violet: "border-xenium-violet-mid/40 bg-xenium-violet-deep/10 text-xenium-violet-mid",
-    green: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
-    muted: "border-border bg-muted/20 text-muted-foreground",
-    red: "border-xenium-rose/40 bg-xenium-rose/10 text-xenium-rose",
-    rose: "border-xenium-rose/40 bg-xenium-rose/10 text-xenium-rose",
-  } as const;
+  const palette: Record<typeof tone, { bg: string; text: string; border: string; glow: string }> = {
+    amber: { bg: "bg-xenium-amber/10", text: "text-xenium-amber", border: "border-xenium-amber/20", glow: "shadow-[inset_0_0_20px_rgba(235,149,85,0.05)]" },
+    violet: { bg: "bg-xenium-violet-deep/20", text: "text-xenium-violet-light", border: "border-xenium-violet-mid/30", glow: "shadow-[inset_0_0_20px_rgba(139,92,246,0.1)]" },
+    green: { bg: "bg-emerald-500/10", text: "text-emerald-400", border: "border-emerald-500/20", glow: "shadow-[inset_0_0_20px_rgba(16,185,129,0.05)]" },
+    muted: { bg: "bg-white/5", text: "text-white/70", border: "border-white/10", glow: "" },
+    red: { bg: "bg-xenium-rose/10", text: "text-xenium-rose", border: "border-xenium-rose/20", glow: "shadow-[inset_0_0_20px_rgba(244,63,94,0.05)]" },
+    rose: { bg: "bg-xenium-rose/10", text: "text-xenium-rose", border: "border-xenium-rose/20", glow: "shadow-[inset_0_0_20px_rgba(244,63,94,0.05)]" },
+  };
+  const theme = palette[tone];
+  
   return (
-    <div className={`rounded-xl border p-4 ${palette[tone]}`}>
-      <p className="text-[10px] uppercase tracking-[0.2em] mb-1 opacity-80">{title}</p>
-      <p className="font-medium text-sm">{label}</p>
+    <div className={`rounded-xl border ${theme.border} ${theme.bg} ${theme.glow} p-5 flex flex-col justify-center transition-all duration-300 hover:border-opacity-50`}>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] mb-2 opacity-70 text-white/70">{title}</p>
+      <p className={`font-display text-xl sm:text-2xl font-medium tracking-wide ${theme.text}`}>{label}</p>
     </div>
   );
 }
@@ -372,8 +386,8 @@ function StatusBlock({ title, label, tone }: { title: string; label: string; ton
 function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[11px] uppercase tracking-widest text-muted-foreground/60">{label}</p>
-      <p className="text-foreground/90">{value}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-1.5">{label}</p>
+      <p className="text-white/90 font-medium text-sm sm:text-base">{value}</p>
     </div>
   );
 }

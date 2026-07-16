@@ -21,9 +21,11 @@ export default function AdminDashboard() {
   }, []);
 
   const load = async () => {
+    console.log("load() called with state:", { page, search, paymentStatus, productionStatus });
     setLoading(true);
     setError(null);
     try {
+      console.log("Calling adminListOrders...");
       const res = await adminListOrders({
         limit: PAGE_SIZE,
         offset: page * PAGE_SIZE,
@@ -31,22 +33,38 @@ export default function AdminDashboard() {
         paymentStatus: paymentStatus || undefined,
         productionStatus: productionStatus || undefined,
       });
+      console.log("adminListOrders returned:", res);
       setItems(res.items);
       setTotal(res.total);
     } catch (e) {
+      console.error("load() caught error:", e);
       setError(e instanceof Error ? e.message : "Failed to load orders");
     } finally {
+      console.log("load() finally block executed");
       setLoading(false);
     }
   };
 
+  // 1. Pagination triggers a load automatically
   useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, paymentStatus, productionStatus]);
+  }, [page]);
 
+  // 2. Search box triggers a load automatically (debounced)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setPage(0);
+      void load();
+    }, 400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
+  // 3. Form submit (Apply button) triggers a load manually for dropdowns
   const onSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("onSearch form submitted for dropdowns!");
     setPage(0);
     void load();
   };
@@ -93,10 +111,7 @@ export default function AdminDashboard() {
         </div>
         <select
           value={paymentStatus}
-          onChange={(e) => {
-            setPaymentStatus(e.target.value);
-            setPage(0);
-          }}
+          onChange={(e) => setPaymentStatus(e.target.value)}
           className="px-4 py-2.5 rounded-full bg-background border border-border/60 text-sm text-foreground [&>option]:bg-background [&>option]:text-foreground"
           aria-label="Filter by payment status"
         >
@@ -111,10 +126,7 @@ export default function AdminDashboard() {
         </select>
         <select
           value={productionStatus}
-          onChange={(e) => {
-            setProductionStatus(e.target.value);
-            setPage(0);
-          }}
+          onChange={(e) => setProductionStatus(e.target.value)}
           className="px-4 py-2.5 rounded-full bg-background border border-border/60 text-sm text-foreground [&>option]:bg-background [&>option]:text-foreground"
           aria-label="Filter by production status"
         >
@@ -127,9 +139,26 @@ export default function AdminDashboard() {
           <option value="delivered">Delivered</option>
           <option value="cancelled">Cancelled</option>
         </select>
-        <button type="submit" className="px-4 py-2.5 rounded-full bg-muted/30 text-foreground text-sm hover:bg-muted/50 inline-flex items-center gap-1.5">
-          <Filter size={13} /> Apply
-        </button>
+        <div className="flex items-center gap-2">
+          <button type="submit" className="px-4 py-2.5 rounded-full bg-muted/30 text-foreground text-sm hover:bg-muted/50 inline-flex items-center gap-1.5 transition-colors">
+            <Filter size={13} /> Apply
+          </button>
+          {(search || paymentStatus || productionStatus) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setPaymentStatus("");
+                setProductionStatus("");
+                setPage(0);
+                setTimeout(() => load(), 50);
+              }}
+              className="px-4 py-2.5 rounded-full border border-xenium-rose/40 text-xenium-rose text-sm hover:bg-xenium-rose/10 transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </form>
 
       {error && (
@@ -162,12 +191,16 @@ export default function AdminDashboard() {
                 const pay = paymentStatusLabel(o.payment_status);
                 const prod = productionStatusLabel(o.production_status);
                 const onDelete = async () => {
+                  console.log("onDelete clicked for:", o.short_code);
                   if (!confirm(`Delete order ${o.short_code}? This cannot be undone.`)) return;
                   try {
+                    console.log("Calling adminDeleteOrder...");
                     await adminDeleteOrder(o.short_code);
+                    console.log("Delete succeeded for:", o.short_code);
                     setItems((prev) => prev.filter((x) => x.id !== o.id));
                     setTotal((t) => Math.max(0, t - 1));
                   } catch (e) {
+                    console.error("Delete failed:", e);
                     setError(e instanceof Error ? e.message : "Delete failed");
                   }
                 };

@@ -116,7 +116,11 @@ export function formatINR(paise: number): string {
 
 function parseFunctionError(error: unknown, fallback: string): TrackLookupResponse {
   if (error && typeof error === "object" && "message" in error) {
-    return { error: "function_error", message: String((error as { message?: string }).message) || fallback };
+    let msg = String((error as { message?: string }).message);
+    if (msg.includes("non-2xx status code")) {
+      msg = fallback;
+    }
+    return { error: "function_error", message: msg || fallback };
   }
   return { error: "function_error", message: fallback };
 }

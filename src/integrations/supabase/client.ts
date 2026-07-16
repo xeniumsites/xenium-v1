@@ -13,5 +13,11 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storageKey: 'xenium-auth-token-v3', // Force a completely fresh start
+    lock: async (name: string, acquireTimeout: number, fn: () => Promise<any>) => {
+      // Completely bypass the buggy navigator.locks which freezes Chrome tabs
+      return await fn();
+    }
   }
 });

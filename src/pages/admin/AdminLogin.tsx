@@ -29,25 +29,37 @@ export default function AdminLogin() {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    const { error: signErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (signErr) {
-      setError(signErr.message || "Sign in failed.");
-      setSubmitting(false);
-      return;
-    }
-    // Re-check admin status; useAdminAuth will pick up the new session.
-    const { data } = await supabase.auth.getUser();
-    if (data?.user) {
-      const { data: adm } = await (supabase as any).from("admin_users").select("user_id").eq("user_id", data.user.id).maybeSingle();
-      if (!adm) {
-        await supabase.auth.signOut();
-        setError("This account is not an admin. Contact the site owner.");
+    console.log("Step 1: Starting sign in...");
+    try {
+      const { data: signData, error: signErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      console.log("Step 2: signErr =", signErr);
+      
+      if (signErr) {
+        setError(signErr.message || "Sign in failed.");
         setSubmitting(false);
         return;
       }
-      navigate("/admin", { replace: true });
+      
+      if (signData?.user) {
+        console.log("Step 5: Checking admin_users...");
+        const { data: adm, error: admErr } = await (supabase as any).from("admin_users").select("user_id").eq("user_id", signData.user.id).maybeSingle();
+        console.log("Step 6: admin check result =", adm, "error =", admErr);
+        
+        if (!adm) {
+          await supabase.auth.signOut();
+          setError("This account is not an admin. Contact the site owner.");
+          setSubmitting(false);
+          return;
+        }
+        console.log("Step 7: Navigating to /admin via window.location...");
+        window.location.href = "/admin";
+      }
+    } catch (err: any) {
+      console.error("RAW EXCEPTION:", err);
+      setError("Fatal error: " + err.message);
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   return (
@@ -74,7 +86,8 @@ export default function AdminLogin() {
             <input
               id="admin-email"
               type="email"
-              autoComplete="email"
+              autoComplete="off"
+              name="admin-email-field"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-muted/20 border border-border/60 rounded-xl px-5 py-3.5 text-foreground focus:outline-none focus:border-xenium-violet-mid/40 focus:ring-2 focus:ring-xenium-violet-mid/20 text-base sm:text-sm"
@@ -86,7 +99,8 @@ export default function AdminLogin() {
             <input
               id="admin-password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
+              name="admin-password-field"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-muted/20 border border-border/60 rounded-xl px-5 py-3.5 text-foreground focus:outline-none focus:border-xenium-violet-mid/40 focus:ring-2 focus:ring-xenium-violet-mid/20 text-base sm:text-sm"
