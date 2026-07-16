@@ -233,82 +233,101 @@ export default function RequestForm() {
     return (
       <section id="create" className="py-20 sm:py-24 px-4 sm:px-6">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-2xl mx-auto glass-card p-8 sm:p-12 md:p-16 text-center"
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="max-w-2xl mx-auto glass-card p-8 sm:p-12 md:p-16 text-center relative overflow-hidden"
           role="status"
           aria-live="polite"
         >
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full gradient-full flex items-center justify-center mx-auto mb-6 sm:mb-8">
-            <Check size={32} className="text-foreground" />
+          {/* Subtle background glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] h-64 bg-xenium-violet/10 blur-[100px] -z-10 rounded-full" />
+
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-b from-xenium-violet-mid/20 to-transparent border border-xenium-violet-mid/30 flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-[0_0_30px_rgba(124,91,184,0.2)]">
+            <Lock size={32} className="text-xenium-violet-mid" />
           </div>
-          <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-medium mb-3">
-            Your Xenium request is ready.
+          
+          <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-medium mb-5">
+            Your request is secured.
           </h3>
+          
           {code && (
-            <p className="text-muted-foreground max-w-md mx-auto leading-relaxed mb-2 text-sm">
-              Order ID: <span className="font-mono text-foreground/90">{code}</span>
-            </p>
+            <div className="inline-flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl bg-muted/20 border border-border/50 mb-6 shadow-inner">
+              <span className="text-muted-foreground text-xs font-semibold uppercase tracking-[0.15em]">Order ID</span>
+              <span className="w-px h-4 bg-border/60"></span>
+              <span className="font-mono text-foreground font-medium tracking-wider">{code}</span>
+            </div>
           )}
-          <p className="text-muted-foreground max-w-md mx-auto leading-relaxed mb-6">
+          
+          <p className="text-muted-foreground max-w-md mx-auto leading-relaxed mb-8 text-[15px]">
             {payUrl
-              ? "To begin production, please complete the payment of ₹750 below. We've also emailed you the link."
+              ? "To begin production immediately, please complete the payment of ₹750 below. We've also emailed you a secure link."
               : "We've received your details and emailed your team. Production starts as soon as payment is received."}
           </p>
 
           {payUrl && (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mb-6">
+            <div className="flex flex-col items-center justify-center mb-10">
               <a
                 href={payUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="gradient-full text-foreground font-semibold inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full text-base glow-violet min-h-[52px]"
+                className="gradient-full text-foreground font-semibold inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full text-lg glow-violet transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-xl w-full sm:w-auto min-w-[280px] border border-white/10"
               >
-                <Sparkles size={16} /> Pay ₹750 securely
+                <Sparkles size={20} className="animate-pulse" /> Pay ₹750 securely
               </a>
-              {code && (
-                <button
-                  type="button"
-                  onClick={() => navigate(`/track/${code}`)}
-                  className="glass-card text-foreground font-medium px-7 py-3.5 rounded-full text-base hover:bg-muted/30 transition-all flex items-center justify-center gap-2 hover:border-xenium-violet-mid/40 min-h-[52px]"
-                >
-                  <RefreshCw size={16} /> Track this order
-                </button>
-              )}
             </div>
           )}
 
-          <div className="grid sm:grid-cols-3 gap-3 sm:gap-4 max-w-lg mx-auto mb-8 text-left text-xs sm:text-sm">
-            <div className="glass-card p-3 sm:p-4 rounded-xl">
-              <Mail size={14} className="text-xenium-amber mb-2" />
-              <p className="text-foreground/85 font-medium">Pay & confirm</p>
-              <p className="text-muted-foreground/70 text-[11px] sm:text-xs">Secure UPI / cards</p>
-            </div>
-            <div className="glass-card p-3 sm:p-4 rounded-xl">
-              <ImageIcon size={14} className="text-xenium-rose mb-2" />
-              <p className="text-foreground/85 font-medium">Share your media</p>
-              <p className="text-muted-foreground/70 text-[11px] sm:text-xs">We email you within 24 hrs</p>
-            </div>
-            <div className="glass-card p-3 sm:p-4 rounded-xl">
-              <Sparkles size={14} className="text-xenium-violet-mid mb-2" />
-              <p className="text-foreground/85 font-medium">Receive your Xenium</p>
-              <p className="text-muted-foreground/70 text-[11px] sm:text-xs">Same day · within 24 hrs</p>
-            </div>
+          {/* Premium sleek timeline */}
+          <div className="max-w-md mx-auto mb-10 space-y-6 text-left bg-muted/10 p-6 rounded-2xl border border-border/40 shadow-sm relative">
+             <div className="flex items-start gap-4 relative z-10">
+               <div className="w-8 h-8 rounded-full bg-xenium-violet/10 text-xenium-violet-mid flex items-center justify-center shrink-0 mt-0.5 border border-xenium-violet/20 shadow-sm">
+                 <Lock size={14} />
+               </div>
+               <div>
+                 <h4 className="text-foreground/90 font-medium text-sm">1. Pay & Confirm</h4>
+                 <p className="text-muted-foreground text-xs mt-1 leading-relaxed">Complete your secure payment via UPI, Cards, or Netbanking.</p>
+               </div>
+             </div>
+             <div className="w-0.5 h-8 bg-gradient-to-b from-xenium-violet/30 to-xenium-rose/30 absolute top-12 left-[39px] z-0 hidden sm:block"></div>
+             
+             <div className="flex items-start gap-4 relative z-10">
+               <div className="w-8 h-8 rounded-full bg-xenium-rose/10 text-xenium-rose flex items-center justify-center shrink-0 mt-0.5 border border-xenium-rose/20 shadow-sm">
+                 <ImageIcon size={14} />
+               </div>
+               <div>
+                 <h4 className="text-foreground/90 font-medium text-sm">2. Share your media</h4>
+                 <p className="text-muted-foreground text-xs mt-1 leading-relaxed">We will email you within 24 hours to collect photos and videos for your Xenium.</p>
+               </div>
+             </div>
+             <div className="w-0.5 h-8 bg-gradient-to-b from-xenium-rose/30 to-xenium-amber/30 absolute top-[116px] left-[39px] z-0 hidden sm:block"></div>
+             
+             <div className="flex items-start gap-4 relative z-10">
+               <div className="w-8 h-8 rounded-full bg-xenium-amber/10 text-xenium-amber flex items-center justify-center shrink-0 mt-0.5 border border-xenium-amber/20 shadow-sm">
+                 <Sparkles size={14} />
+               </div>
+               <div>
+                 <h4 className="text-foreground/90 font-medium text-sm">3. Receive your Xenium</h4>
+                 <p className="text-muted-foreground text-xs mt-1 leading-relaxed">Delivered digitally on the same day (for early orders) or within 24 hours.</p>
+               </div>
+             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
-            <button
-              type="button"
-              onClick={() => document.querySelector("#home")?.scrollIntoView({ behavior: "smooth" })}
-              className="glass-card text-foreground font-medium px-6 py-3 rounded-full text-sm hover:bg-muted/30 transition-all flex items-center justify-center gap-2 hover:border-xenium-violet-mid/40 min-h-[44px]"
-            >
-              <Home size={16} /> Return to Home
-            </button>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-6 border-t border-border/40">
+            {code && (
+              <button
+                type="button"
+                onClick={() => navigate(`/track/${code}`)}
+                className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <RefreshCw size={14} /> Track this order
+              </button>
+            )}
             <button
               type="button"
               onClick={startOver}
-              className="glass-card text-foreground font-medium px-6 py-3 rounded-full text-sm hover:bg-muted/30 transition-all flex items-center justify-center gap-2 hover:border-xenium-violet-mid/40 min-h-[44px]"
+              className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors flex items-center gap-2"
             >
-              <RefreshCw size={16} /> Create Another Request
+              <ArrowLeft size={14} /> Create another request
             </button>
           </div>
         </motion.div>
