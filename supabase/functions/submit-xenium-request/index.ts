@@ -145,10 +145,13 @@ serve(async (req) => {
       console.error('Payment link creation failed (non-fatal):', e)
     }
 
+    // Dispatch emails concurrently to reduce submission time
+    const emailPromises: Promise<void>[] = []
+
     // Customer-facing email with payment link (if available).
     if (paymentLinkUrl) {
-      try {
-        const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+      emailPromises.push(
+        fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -170,15 +173,16 @@ serve(async (req) => {
             },
           }),
         })
-        if (!res.ok) console.error('customer payment-link email failed', res.status, await res.text())
-      } catch (e) {
-        console.error('customer payment-link email exception', e)
-      }
+          .then(async (res) => {
+            if (!res.ok) console.error('customer payment-link email failed', res.status, await res.text())
+          })
+          .catch((e) => console.error('customer payment-link email exception', e))
+      )
     }
 
     // Admin notification (existing behavior).
-    try {
-      const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+    emailPromises.push(
+      fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -206,10 +210,15 @@ serve(async (req) => {
           },
         }),
       })
-      if (!res.ok) console.error('admin notify email failed', res.status, await res.text())
-    } catch (e) {
-      console.error('admin notify exception', e)
-    }
+        .then(async (res) => {
+          if (!res.ok) console.error('admin notify email failed', res.status, await res.text())
+        })
+        .catch((e) => console.error('admin notify exception', e))
+    )
+
+    // Wait for both emails to be enqueued concurrently.
+    // This halves the blocking time before we return the response to the user.
+    await Promise.allSettled(emailPromises)
 
     return new Response(
       JSON.stringify({

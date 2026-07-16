@@ -30,14 +30,14 @@ const CustomerPaymentLinkEmail = ({
         <Heading style={brand}>Xenium</Heading>
         <Heading style={h1}>Hi {senderName ?? 'there'} — your Xenium is queued.</Heading>
         <Text style={lead}>
-          Thank you for your request for a {occasion ? occasion.toLowerCase() : 'Xenium'} experience.
-          To begin production, please complete payment of <strong>{amount ?? '₹750'}</strong>{' '}
+          Thank you for requesting a {occasion ? occasion.toLowerCase() : 'Xenium'} experience.
+          To begin production, please complete the payment of <strong>{amount ?? '₹750'}</strong>{' '}
           using the secure link below.
         </Text>
 
-        <Section style={{ textAlign: 'center', margin: '24px 0 28px' }}>
+        <Section style={{ textAlign: 'center', margin: '32px 0 40px' }}>
           <Button href={paymentLinkUrl} style={buttonStyle('primary')}>
-            Pay {amount ?? '₹750'} securely
+            Pay {amount ?? '₹750'} securely 🔒
           </Button>
         </Section>
 

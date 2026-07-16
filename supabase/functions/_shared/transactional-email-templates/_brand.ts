@@ -22,14 +22,14 @@ export const BRAND = {
 }
 
 export const main: React.CSSProperties = {
-  backgroundColor: BRAND.paper,
-  fontFamily: 'Georgia, "Times New Roman", serif',
+  backgroundColor: BRAND.void,
+  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   margin: 0,
   padding: 0,
 }
 
 export const container: React.CSSProperties = {
-  padding: '32px 28px',
+  padding: '40px 28px',
   maxWidth: '560px',
   margin: '0 auto',
 }
@@ -38,30 +38,31 @@ export const accentStrip: React.CSSProperties = {
   height: '4px',
   background: `linear-gradient(90deg, ${BRAND.violet}, ${BRAND.rose}, ${BRAND.amber})`,
   borderRadius: '4px',
-  margin: '0 0 24px',
+  margin: '0 0 32px',
 }
 
 export const brand: React.CSSProperties = {
   fontSize: '13px',
   letterSpacing: '0.4em',
-  color: BRAND.amberDeep,
+  color: BRAND.amber,
   textTransform: 'uppercase',
   margin: '0 0 16px',
-  fontWeight: 'normal',
+  fontWeight: 600,
 }
 
 export const h1: React.CSSProperties = {
   fontSize: '28px',
-  color: BRAND.void,
-  margin: '0 0 12px',
-  lineHeight: 1.2,
-  fontWeight: 'normal',
+  color: '#ffffff',
+  margin: '0 0 16px',
+  lineHeight: 1.3,
+  fontWeight: 500,
+  letterSpacing: '-0.02em',
 }
 
 export const h2: React.CSSProperties = {
   fontSize: '13px',
-  color: BRAND.amberDeep,
-  margin: '0 0 10px',
+  color: BRAND.amber,
+  margin: '0 0 12px',
   textTransform: 'uppercase',
   letterSpacing: '0.12em',
   fontWeight: 600,
@@ -69,24 +70,25 @@ export const h2: React.CSSProperties = {
 
 export const lead: React.CSSProperties = {
   fontSize: '16px',
-  color: BRAND.bodyText,
-  margin: '0 0 22px',
+  color: '#e2e8f0',
+  margin: '0 0 24px',
   lineHeight: 1.6,
+  fontWeight: 400,
 }
 
 export const body: React.CSSProperties = {
   fontSize: '14px',
-  color: BRAND.bodyText,
+  color: '#cbd5e1',
   margin: '0 0 16px',
   lineHeight: 1.65,
 }
 
 export const card: React.CSSProperties = {
-  background: '#ffffff',
-  border: `1px solid ${BRAND.paperLine}`,
-  borderRadius: '10px',
-  padding: '18px 20px',
-  margin: '0 0 16px',
+  background: BRAND.ink,
+  border: `1px solid rgba(255,255,255,0.1)`,
+  borderRadius: '12px',
+  padding: '24px',
+  margin: '0 0 24px',
 }
 
 export const button = (variant: 'primary' | 'secondary' = 'primary'): React.CSSProperties => ({
@@ -94,45 +96,47 @@ export const button = (variant: 'primary' | 'secondary' = 'primary'): React.CSSP
   background:
     variant === 'primary'
       ? `linear-gradient(135deg, ${BRAND.violet}, ${BRAND.rose}, ${BRAND.amber})`
-      : '#ffffff',
-  color: variant === 'primary' ? '#ffffff' : BRAND.void,
-  fontFamily: 'Georgia, "Times New Roman", serif',
+      : 'rgba(255,255,255,0.05)',
+  color: '#ffffff',
+  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   fontSize: '15px',
   fontWeight: 600,
   textDecoration: 'none',
-  padding: '12px 26px',
+  padding: '14px 32px',
   borderRadius: '999px',
-  border: variant === 'primary' ? 'none' : `1px solid ${BRAND.paperLine}`,
+  border: variant === 'primary' ? 'none' : `1px solid rgba(255,255,255,0.1)`,
   margin: '4px 0',
+  textAlign: 'center',
 })
 
 export const row: React.CSSProperties = {
   fontSize: '14px',
-  margin: '4px 0',
+  margin: '8px 0',
   lineHeight: 1.5,
 }
 
-export const labelStyle: React.CSSProperties = { color: BRAND.mutedText }
-export const valueStyle: React.CSSProperties = { color: BRAND.void }
+export const labelStyle: React.CSSProperties = { color: '#94a3b8' }
+export const valueStyle: React.CSSProperties = { color: '#f8fafc', fontWeight: 500 }
 
 export const hr: React.CSSProperties = {
-  borderColor: BRAND.paperLine,
-  margin: '28px 0 16px',
+  borderColor: 'rgba(255,255,255,0.1)',
+  margin: '32px 0 24px',
 }
 
 export const footer: React.CSSProperties = {
   fontSize: '12px',
-  color: BRAND.mutedText,
-  margin: 0,
+  color: '#64748b',
+  margin: '0 0 8px',
   lineHeight: 1.6,
 }
 
 export const amberSmall: React.CSSProperties = {
   fontSize: '11px',
   letterSpacing: '0.2em',
-  color: BRAND.amberDeep,
+  color: BRAND.amber,
   textTransform: 'uppercase',
-  margin: '0 0 6px',
+  margin: '0 0 8px',
+  fontWeight: 600,
 }
 
 export const otpBox: React.CSSProperties = {
