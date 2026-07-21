@@ -8,9 +8,6 @@ verify_jwt = true
 [functions.send-transactional-email]
 verify_jwt = true
 
-[functions.preview-transactional-email]
-verify_jwt = false
-
 [functions.handle-email-unsubscribe]
 verify_jwt = false
 
@@ -42,10 +39,6 @@ verify_jwt = false
 # admin_users membership before returning data.
 [functions.admin-orders]
 verify_jwt = true
-
-# Public chatbot powered by Lovable AI Gateway.
-[functions.xenium-chat]
-verify_jwt = false
 
 # Public stats counter (delivered orders).
 [functions.get-public-stats]

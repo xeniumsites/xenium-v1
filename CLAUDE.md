@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Xenium Gifts — marketing site + order pipeline for premium personalized digital gifting experiences (cinematic microsites for birthdays, anniversaries, proposals, memorials, retirements, corporate moments). Frontend is a single-page React app; the backend is entirely Supabase (Postgres + Deno edge functions). Live at https://xenium-sites.com. This is a private commercial project — origin is a Lovable-managed repo (see `.lovable/`, `lovable-tagger` dev plugin, `lovable-agent-playwright-config`), so expect some Lovable-specific tooling in configs.
+Xenium Gifts — marketing site + order pipeline for premium personalized digital gifting experiences (cinematic microsites for birthdays, anniversaries, proposals, memorials, retirements, corporate moments). Frontend is a single-page React app (React 18 + TypeScript + Vite, Tailwind, shadcn/ui, React Hook Form + Zod, TanStack Query, React Router v6, Framer Motion); the backend is entirely Supabase (Postgres + Deno edge functions). Live at https://xenium-sites.com. This is a private commercial project. The repo originated on Lovable, but all Lovable-specific tooling and services (visual-editor tagging, agentic Playwright config, the transactional email provider, the AI Gateway powering the old chatbot) have been removed — don't reintroduce `lovable-tagger`, `@lovable.dev/*` packages, or the Lovable AI Gateway.
+
+`SECURITY_AUDIT.md` documents a past full-repo audit (edge function auth gaps, RLS policy issues, etc.) with fix patterns already applied — check it before changing `verify_jwt` settings, RLS policies, or auth checks in edge functions, since it explains the reasoning behind the current patterns (e.g. the `claims.role === 'service_role'` check in `process-email-queue`).
 
 ## Commands
 
@@ -19,6 +21,8 @@ npm run test:watch    # vitest watch mode
 ```
 
 Run a single test file: `npx vitest run src/test/example.test.ts`. Tests live under `src/**/*.{test,spec}.{ts,tsx}` and run in jsdom (`vitest.config.ts`, setup in `src/test/setup.ts`).
+
+Use `npm`, not `bun`, even though `bun.lock`/`bun.lockb` are present (leftover from the Lovable-managed origin) alongside `package-lock.json` — the commands above assume the npm lockfile.
 
 Supabase backend (edge functions + migrations) is deployed via the Supabase CLI, not via `npm`. See `OPERATOR_RUNBOOK.md` for the full one-time setup and `PAYMENTS_SETUP.md` for the payments-specific wiring. Common ongoing commands:
 
@@ -47,9 +51,10 @@ supabase secrets list                     # verify edge function secrets are set
 - `razorpay-webhook` — public, `verify_jwt = false`; authenticates via `X-Razorpay-Signature` HMAC (see `_shared/razorpay.ts`), not JWT. Flips `payment_status` to paid/cancelled/expired and sends the `payment-confirmed` email.
 - `track-order` / `verify-tracking-otp` — public order lookup by (short_code, email), optionally gated by a 6-digit email OTP when the `TRACK_REQUIRE_OTP` secret is `true`.
 - `admin-orders` — the only `verify_jwt = true` function with app-level authorization on top: it takes the caller's Supabase JWT, resolves the user, then checks membership in the `admin_users` table before doing anything (pattern in `supabase/functions/admin-orders/index.ts`). Action-routed via a single `action` field in the POST body (`list`, `get`, `update`, `create_manual`, `resend_payment_email`, `delete`) rather than separate REST routes.
-- `send-transactional-email` / `process-email-queue` / `preview-transactional-email` / `handle-email-suppression` / `handle-email-unsubscribe` — transactional email infra. Templates are React components (`.tsx`, rendered server-side in Deno) registered by key in `_shared/transactional-email-templates/registry.ts`; add a new email by writing a template component and registering it there.
-- `xenium-chat` — public chatbot via the Lovable AI Gateway (`_shared/ai-gateway.ts`).
+- `send-transactional-email` / `process-email-queue` / `handle-email-suppression` / `handle-email-unsubscribe` — transactional email infra, sent via **Resend**. `send-transactional-email` renders a React Email template and enqueues it (Postgres queue via `enqueue_email`); `process-email-queue` is the actual dispatcher — it calls the Resend REST API directly (`RESEND_API_KEY`) and handles retries/rate-limit backoff/DLQ. `handle-email-suppression` is the inbound webhook Resend calls on `email.bounced`/`email.complained` (Svix-signed, verified against `RESEND_WEBHOOK_SECRET`); unsubscribes are handled separately by `handle-email-unsubscribe`'s own token flow, unrelated to Resend. Templates are React components (`.tsx`, rendered server-side in Deno) registered by key in `_shared/transactional-email-templates/registry.ts`; add a new email by writing a template component and registering it there.
 - `get-public-stats` — public counter (delivered orders) shown on the landing page.
+
+There is no chatbot currently — `xenium-chat` and its Lovable AI Gateway wrapper (`_shared/ai-gateway.ts`) were removed along with the rest of the Lovable dependency. If one gets rebuilt, wire it to an AI provider directly rather than through Lovable.
 
 Each function's `verify_jwt` setting (whether Supabase auto-checks a JWT before invoking) is declared per-function in `supabase/config.toml` — check there before assuming a function is public or protected. Shared per-function helpers (CORS/JSON response helpers, Razorpay client) live in `supabase/functions/_shared/`.
 
@@ -64,7 +69,7 @@ Each function's `verify_jwt` setting (whether Supabase auto-checks a JWT before 
 ## Environment / secrets
 
 - Client-side (`.env`, `VITE_*` prefix): only the Supabase URL/project ID/anon key. Safe to ship; never put a service-role key here.
-- Server-side (edge function secrets, set via `supabase secrets set`, never committed): `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `PUBLIC_SITE_URL`, `XENIUM_DEFAULT_AMOUNT_PAISE`, `TRACK_REQUIRE_OTP`. `SUPABASE_URL` / `SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` are auto-injected by Supabase into every function — don't set them manually.
+- Server-side (edge function secrets, set via `supabase secrets set`, never committed): `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `PUBLIC_SITE_URL`, `XENIUM_DEFAULT_AMOUNT_PAISE`, `TRACK_REQUIRE_OTP`. `SUPABASE_URL` / `SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` are auto-injected by Supabase into every function — don't set them manually.
 - Razorpay webhook secret and API key secret are two different secrets — don't confuse them (see `PAYMENTS_SETUP.md` §2 if unsure).
 
 ## Brand tokens

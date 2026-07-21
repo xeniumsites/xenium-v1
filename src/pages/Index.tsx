@@ -19,7 +19,6 @@ import FAQ from "@/components/xenium/FAQ";
 import FinalCTA from "@/components/xenium/FinalCTA";
 import Footer from "@/components/xenium/Footer";
 import StickyMobileCTA from "@/components/xenium/StickyMobileCTA";
-import ChatBot from "@/components/xenium/ChatBot";
 
 const FAQ_JSONLD = {
   "@context": "https://schema.org",
@@ -153,7 +152,6 @@ const Index = () => {
         <Footer />
       </div>
       <StickyMobileCTA />
-      <ChatBot />
     </div>
   );
 };

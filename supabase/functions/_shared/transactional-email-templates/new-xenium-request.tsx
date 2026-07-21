@@ -86,7 +86,7 @@ const NewXeniumRequestEmail = ({
 
         <Hr style={hr} />
         <Text style={footer}>
-          Submitted {submittedAt ?? 'just now'} · xeniumgifts.lovable.app
+          Submitted {submittedAt ?? 'just now'} · xenium-sites.com
         </Text>
       </Container>
     </Body>

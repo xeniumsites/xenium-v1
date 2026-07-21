@@ -1,4 +1,3 @@
-import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const MAX_RETRIES = 5
@@ -6,6 +5,75 @@ const DEFAULT_BATCH_SIZE = 10
 const DEFAULT_SEND_DELAY_MS = 200
 const DEFAULT_AUTH_TTL_MINUTES = 15
 const DEFAULT_TRANSACTIONAL_TTL_MINUTES = 60
+const RESEND_API_URL = 'https://api.resend.com/emails'
+
+// Structured error carrying the HTTP status and any Retry-After hint, so the
+// isRateLimited/isForbidden/getRetryAfterSeconds helpers below can key off it.
+class EmailAPIError extends Error {
+  status: number
+  retryAfterSeconds: number | null
+  constructor(message: string, status: number, retryAfterSeconds: number | null) {
+    super(message)
+    this.status = status
+    this.retryAfterSeconds = retryAfterSeconds
+  }
+}
+
+// Sends one pre-rendered email via the Resend API.
+async function sendResendEmail(
+  payload: {
+    to: string
+    from: string
+    subject: string
+    html: string
+    text: string
+    idempotency_key: string
+    unsubscribe_token?: string
+    label?: string
+  },
+  opts: { apiKey: string; supabaseUrl: string }
+): Promise<void> {
+  const headers: Record<string, string> = {}
+  if (payload.unsubscribe_token) {
+    const unsubscribeUrl = `${opts.supabaseUrl}/functions/v1/handle-email-unsubscribe?token=${payload.unsubscribe_token}`
+    headers['List-Unsubscribe'] = `<${unsubscribeUrl}>`
+    headers['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'
+  }
+
+  const res = await fetch(RESEND_API_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${opts.apiKey}`,
+      'Content-Type': 'application/json',
+      'Idempotency-Key': payload.idempotency_key,
+    },
+    body: JSON.stringify({
+      from: payload.from,
+      to: payload.to,
+      subject: payload.subject,
+      html: payload.html,
+      text: payload.text,
+      headers,
+      tags: payload.label ? [{ name: 'label', value: payload.label }] : undefined,
+    }),
+  })
+
+  if (!res.ok) {
+    let message = `Resend send failed with status ${res.status}`
+    try {
+      const body = await res.json()
+      if (body?.message) message = body.message
+    } catch {
+      // Keep the default message if the error body isn't JSON.
+    }
+    const retryAfterHeader = res.headers.get('retry-after')
+    throw new EmailAPIError(
+      message,
+      res.status,
+      retryAfterHeader ? Number(retryAfterHeader) : null
+    )
+  }
+}
 
 // Check if an error is a rate-limit (429) response.
 // Uses EmailAPIError.status when available (email-js >=0.x with structured errors),
@@ -79,7 +147,7 @@ async function moveToDlq(
 }
 
 Deno.serve(async (req) => {
-  const apiKey = Deno.env.get('LOVABLE_API_KEY')
+  const apiKey = Deno.env.get('RESEND_API_KEY')
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
@@ -249,25 +317,18 @@ Deno.serve(async (req) => {
       }
 
       try {
-        await sendLovableEmail(
+        await sendResendEmail(
           {
-            run_id: payload.run_id,
             to: payload.to,
             from: payload.from,
-            sender_domain: payload.sender_domain,
             subject: payload.subject,
             html: payload.html,
             text: payload.text,
-            purpose: payload.purpose,
-            label: payload.label,
             idempotency_key: payload.idempotency_key,
             unsubscribe_token: payload.unsubscribe_token,
-            message_id: payload.message_id,
+            label: payload.label,
           },
-          // sendUrl is optional — when LOVABLE_SEND_URL is not set, the library
-          // falls back to the default Lovable API endpoint (https://api.lovable.dev).
-          // Set LOVABLE_SEND_URL as a Supabase secret to override (e.g. for local dev).
-          { apiKey, sendUrl: Deno.env.get('LOVABLE_SEND_URL') }
+          { apiKey, supabaseUrl }
         )
 
         // Log success
