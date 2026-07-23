@@ -22,6 +22,9 @@ import { template as customerPaymentLink } from './customer-payment-link.tsx'
 import { template as paymentConfirmed } from './payment-confirmed.tsx'
 import { template as orderStatusUpdate } from './order-status-update.tsx'
 import { template as trackingOtp } from './tracking-otp.tsx'
+import { template as orderDelivered } from './order-delivered.tsx'
+import { template as editRequestReceived } from './edit-request-received.tsx'
+import { template as editRequestAck } from './edit-request-ack.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'new-xenium-request': newXeniumRequest,
@@ -29,4 +32,8 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'payment-confirmed': { ...paymentConfirmed, transactional: true },
   'order-status-update': orderStatusUpdate,
   'tracking-otp': { ...trackingOtp, transactional: true },
+  // Delivery contains the reveal + preview links — must always reach the buyer.
+  'order-delivered': { ...orderDelivered, transactional: true },
+  'edit-request-received': editRequestReceived,
+  'edit-request-ack': { ...editRequestAck, transactional: true },
 }

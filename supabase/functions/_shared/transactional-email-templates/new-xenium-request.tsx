@@ -3,6 +3,10 @@ import {
   Body, Container, Head, Heading, Hr, Html, Preview, Section, Text,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
+import {
+  main, container, accentStrip, brand, h1, h2, lead, card, body as bodyStyle,
+  row, labelStyle, valueStyle, hr, footer,
+} from './_brand.ts'
 
 interface Props {
   occasion?: string
@@ -39,6 +43,7 @@ const NewXeniumRequestEmail = ({
     <Preview>New Xenium request from {senderName ?? 'someone special'}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <div style={accentStrip} />
         <Heading style={brand}>Xenium</Heading>
         <Heading style={h1}>New experience request</Heading>
         <Text style={lead}>
@@ -81,7 +86,7 @@ const NewXeniumRequestEmail = ({
         {story && (
           <Section style={card}>
             <Heading as="h2" style={h2}>Their story</Heading>
-            <Text style={story_}>{story}</Text>
+            <Text style={{ ...bodyStyle, fontStyle: 'italic', margin: 0 }}>{story}</Text>
           </Section>
         )}
 
@@ -98,6 +103,7 @@ const NewXeniumRequestEmail = ({
         <Text style={footer}>
           Submitted {submittedAt ?? 'just now'} · xenium-sites.com
         </Text>
+        <Text style={footer}>Xenium · Hand-crafted personalised digital gifts · Made in India</Text>
       </Container>
     </Body>
   </Html>
@@ -122,19 +128,6 @@ export const template = {
     deadline: '2026-05-20',
     submittedAt: 'May 3, 2026 · 4:32 PM',
     attachmentCount: 3,
+    paymentLinkUrl: 'https://rzp.io/l/sample',
   },
 } satisfies TemplateEntry
-
-const main: React.CSSProperties = { backgroundColor: '#ffffff', fontFamily: 'Georgia, "Times New Roman", serif' }
-const container: React.CSSProperties = { padding: '32px 28px', maxWidth: '560px', margin: '0 auto' }
-const brand: React.CSSProperties = { fontSize: '14px', letterSpacing: '0.4em', color: '#b8860b', textTransform: 'uppercase', margin: '0 0 24px', fontWeight: 'normal' }
-const h1: React.CSSProperties = { fontSize: '26px', color: '#0c0c14', margin: '0 0 8px', fontWeight: 'normal' }
-const h2: React.CSSProperties = { fontSize: '13px', color: '#7c5a00', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 600 }
-const lead: React.CSSProperties = { fontSize: '15px', color: '#55575d', margin: '0 0 24px', lineHeight: 1.5 }
-const card: React.CSSProperties = { background: '#faf7f1', border: '1px solid #efe7d6', borderRadius: '8px', padding: '16px 18px', margin: '0 0 14px' }
-const row: React.CSSProperties = { fontSize: '14px', margin: '4px 0', lineHeight: 1.5 }
-const labelStyle: React.CSSProperties = { color: '#7a7a7a' }
-const valueStyle: React.CSSProperties = { color: '#0c0c14' }
-const story_: React.CSSProperties = { fontSize: '14px', color: '#0c0c14', lineHeight: 1.6, fontStyle: 'italic', margin: 0 }
-const hr: React.CSSProperties = { borderColor: '#eee', margin: '28px 0 16px' }
-const footer: React.CSSProperties = { fontSize: '12px', color: '#999', margin: 0 }

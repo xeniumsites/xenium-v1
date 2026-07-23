@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Plus, ExternalLink, Trash2 } from "lucide-react";
-import { AdminOrder, adminListOrders, adminDeleteOrder } from "@/lib/adminClient";
+import { Loader2, Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Plus, ExternalLink, Trash2, Mail, Send, Check } from "lucide-react";
+import { AdminOrder, adminListOrders, adminDeleteOrder, adminSendTestEmail, EMAIL_TEMPLATES } from "@/lib/adminClient";
 import { formatINR, paymentStatusLabel, productionStatusLabel } from "@/lib/paymentClient";
 
 const PAGE_SIZE = 25;
@@ -54,6 +54,28 @@ export default function AdminDashboard() {
     else void load();
   };
 
+  // Email test tool
+  const [emailToolsOpen, setEmailToolsOpen] = useState(false);
+  const [testTemplate, setTestTemplate] = useState<string>(EMAIL_TEMPLATES[0]);
+  const [testEmail, setTestEmail] = useState("");
+  const [testBusy, setTestBusy] = useState(false);
+  const [testMsg, setTestMsg] = useState<string | null>(null);
+
+  const sendTest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!testEmail.trim()) return;
+    setTestBusy(true);
+    setTestMsg(null);
+    try {
+      await adminSendTestEmail(testTemplate, testEmail.trim());
+      setTestMsg(`Sent "${testTemplate}" to ${testEmail.trim()}.`);
+    } catch (err) {
+      setTestMsg(err instanceof Error ? err.message : "Failed to send test email");
+    } finally {
+      setTestBusy(false);
+    }
+  };
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
@@ -66,6 +88,13 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setEmailToolsOpen((v) => !v)}
+            className={`text-xs inline-flex items-center gap-1.5 px-3 min-h-[40px] rounded-full border ${emailToolsOpen ? "border-xenium-violet-mid/50 text-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}
+          >
+            <Mail size={12} /> Test email
+          </button>
           <button
             type="button"
             onClick={load}
@@ -82,6 +111,45 @@ export default function AdminDashboard() {
           </Link>
         </div>
       </div>
+
+      {emailToolsOpen && (
+        <form onSubmit={sendTest} className="glass-card p-4 sm:p-5 mb-6 grid sm:grid-cols-[1fr_1.2fr_auto] gap-3 items-end">
+          <div>
+            <label className="block text-[11px] uppercase tracking-widest text-muted-foreground/60 mb-1.5">Template</label>
+            <select
+              value={testTemplate}
+              onChange={(e) => setTestTemplate(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-full bg-background border border-border/60 text-sm text-foreground [&>option]:bg-background"
+            >
+              {EMAIL_TEMPLATES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] uppercase tracking-widest text-muted-foreground/60 mb-1.5">Send test to</label>
+            <input
+              type="email"
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+              placeholder="you@email.com"
+              className="w-full px-4 py-2.5 rounded-full bg-muted/20 border border-border/60 text-sm focus:outline-none focus:border-xenium-violet-mid/40"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={testBusy || !testEmail.trim()}
+            className="gradient-full text-foreground font-semibold inline-flex items-center justify-center gap-2 px-5 min-h-[42px] rounded-full text-sm disabled:opacity-60"
+          >
+            {testBusy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Send
+          </button>
+          {testMsg && (
+            <p className="sm:col-span-3 text-xs text-muted-foreground inline-flex items-center gap-1.5">
+              <Check size={12} className="text-emerald-400" /> {testMsg}
+            </p>
+          )}
+        </form>
+      )}
 
       <form onSubmit={onSearch} className="grid sm:grid-cols-[1fr_auto_auto_auto] gap-3 mb-6">
         <div className="relative">

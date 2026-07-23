@@ -40,6 +40,7 @@ const TrackingOtpEmail = ({ senderName, shortCode, otp, expiresInMinutes }: Prop
           For your security, never share this code with anyone — including someone claiming to be
           from Xenium.
         </Text>
+        <Text style={footer}>Xenium · Hand-crafted personalised digital gifts · Made in India</Text>
       </Container>
     </Body>
   </Html>

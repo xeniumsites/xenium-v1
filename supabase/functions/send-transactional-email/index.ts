@@ -84,20 +84,25 @@ Deno.serve(async (req) => {
   let messageId: string
   let templateData: Record<string, any> = {}
   let attachments: Array<{ filename: string; content: string; contentType?: string }> = []
+  let isPreview = false
   try {
     const body = await req.json()
     templateName = body.templateName || body.template_name
     recipientEmail = body.recipientEmail || body.recipient_email
     messageId = crypto.randomUUID()
     idempotencyKey = body.idempotencyKey || body.idempotency_key || messageId
+    // Test/preview send: render the template with its own previewData and send
+    // to the given recipient (ignoring any fixed template `to`). Used by the
+    // admin "send test email" tool.
+    isPreview = body.preview === true
     if (body.templateData && typeof body.templateData === 'object') {
       templateData = body.templateData
     }
     // Optional email attachments: normalize {filename, contentBase64|content, contentType}.
     if (Array.isArray(body.attachments)) {
-      attachments = body.attachments
-        .filter((a: any) => a && typeof a.filename === 'string' && (a.contentBase64 || a.content))
-        .map((a: any) => ({
+      attachments = (body.attachments as Array<Record<string, unknown>>)
+        .filter((a) => a && typeof a.filename === 'string' && (a.contentBase64 || a.content))
+        .map((a) => ({
           filename: String(a.filename),
           content: String(a.contentBase64 ?? a.content),
           contentType: a.contentType ? String(a.contentType) : undefined,
@@ -139,10 +144,15 @@ Deno.serve(async (req) => {
     )
   }
 
+  // In preview/test mode, render the template's own previewData.
+  if (isPreview) {
+    templateData = template.previewData ?? {}
+  }
+
   // Resolve effective recipient: template-level `to` takes precedence over
-  // the caller-provided recipientEmail. This allows notification templates
-  // to always send to a fixed address (e.g., site owner from env var).
-  const effectiveRecipient = template.to || recipientEmail
+  // the caller-provided recipientEmail (notification templates send to a fixed
+  // address). A preview/test send always goes to the provided recipient.
+  const effectiveRecipient = isPreview ? recipientEmail : (template.to || recipientEmail)
 
   if (!effectiveRecipient) {
     return new Response(
@@ -163,7 +173,7 @@ Deno.serve(async (req) => {
   // ALWAYS reach the customer — they are not marketing mail. For them we skip
   // both the suppression check and the one-click unsubscribe token, so a prior
   // unsubscribe/soft-bounce can never block a payment link or an OTP.
-  const isTransactional = template.transactional === true
+  const isTransactional = template.transactional === true || isPreview
   const normalizedEmail = effectiveRecipient.toLowerCase()
   let unsubscribeToken: string | undefined
 
