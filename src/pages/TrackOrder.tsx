@@ -17,6 +17,7 @@ import {
 import {
   OrderStatus,
   checkPaymentStatus,
+  createPaymentLink,
   formatINR,
   paymentStatusLabel,
   productionStatusLabel,
@@ -25,6 +26,11 @@ import {
 } from "@/lib/paymentClient";
 
 type Stage = "lookup" | "otp" | "view";
+
+/** Only http/https links are safe to render as an href (blocks javascript:/data:). */
+function isSafeHttpUrl(url: string | null | undefined): url is string {
+  return !!url && /^https?:\/\//i.test(url);
+}
 
 export default function TrackOrder() {
   const { orderId } = useParams<{ orderId?: string }>();
@@ -47,25 +53,36 @@ export default function TrackOrder() {
 
   // If we landed back from Razorpay's success callback, give the webhook a
   // few seconds and poll for the latest status.
+  // NOTE: depend on stable primitives (shortCode + paymentStatus), NOT the whole
+  // `order` object — each checkPaymentStatus returns a fresh object reference, so
+  // depending on `order` would tear down and restart this effect every tick,
+  // resetting `attempt` and firing requests back-to-back with no cap.
+  const orderShortCode = order?.shortCode;
+  const orderPaymentStatus = order?.paymentStatus;
   useEffect(() => {
-    if (!justPaid || !order) return;
-    if (order.paymentStatus === "paid") return;
+    if (!justPaid || !orderShortCode) return;
+    if (orderPaymentStatus === "paid") return;
     let cancelled = false;
     let attempt = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const tick = async () => {
       if (cancelled) return;
       attempt++;
-      const fresh = await checkPaymentStatus(order.shortCode, email);
-      if (!cancelled && fresh) setOrder(fresh);
-      if (!cancelled && fresh?.paymentStatus !== "paid" && attempt < 6) {
-        setTimeout(tick, 4000);
+      const fresh = await checkPaymentStatus(orderShortCode, email);
+      if (cancelled) return;
+      if (fresh) setOrder(fresh);
+      if (fresh?.paymentStatus !== "paid" && attempt < 6) {
+        timer = setTimeout(tick, 4000);
       }
     };
-    tick();
+    // Initial delay so the webhook has a moment to land before the first poll.
+    timer = setTimeout(tick, 3000);
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
     };
-  }, [justPaid, order, email]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [justPaid, orderShortCode, orderPaymentStatus, email]);
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,6 +140,30 @@ export default function TrackOrder() {
     const fresh = await checkPaymentStatus(order.shortCode, email);
     if (fresh) setOrder(fresh);
     setLoading(false);
+  };
+
+  const [regenerating, setRegenerating] = useState(false);
+  // Issue a fresh payment link when the previous one expired or was cancelled.
+  const regenerate = async () => {
+    if (!order || !email.trim()) return;
+    setRegenerating(true);
+    setError(null);
+    setInfo(null);
+    const res = await createPaymentLink(order.shortCode, email.trim());
+    if (res?.paymentLinkUrl) {
+      const fresh = await checkPaymentStatus(order.shortCode, email.trim());
+      setOrder(
+        fresh ?? {
+          ...order,
+          paymentStatus: res.paymentStatus ?? "created",
+          paymentLinkUrl: res.paymentLinkUrl ?? order.paymentLinkUrl,
+        },
+      );
+      setInfo("A fresh payment link is ready below.");
+    } else {
+      setError("We couldn't generate a new payment link. Please email xeniumgifts@gmail.com.");
+    }
+    setRegenerating(false);
   };
 
   const reset = () => {
@@ -241,7 +282,14 @@ export default function TrackOrder() {
         )}
 
         {stage === "view" && order && (
-          <OrderView order={order} onRefresh={refresh} loading={loading} onReset={reset} />
+          <OrderView
+            order={order}
+            onRefresh={refresh}
+            loading={loading}
+            onReset={reset}
+            onRegenerate={regenerate}
+            regenerating={regenerating}
+          />
         )}
       </div>
     </div>
@@ -253,17 +301,22 @@ function OrderView({
   onRefresh,
   loading,
   onReset,
+  onRegenerate,
+  regenerating,
 }: {
   order: OrderStatus;
   onRefresh: () => void;
   loading: boolean;
   onReset: () => void;
+  onRegenerate: () => void;
+  regenerating: boolean;
 }) {
   const pay = useMemo(() => paymentStatusLabel(order.paymentStatus), [order.paymentStatus]);
   const prod = useMemo(() => productionStatusLabel(order.productionStatus), [order.productionStatus]);
   const created = new Date(order.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
   const paidWhen = order.paidAt ? new Date(order.paidAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : null;
   const showPayCta = order.paymentStatus === "created" || order.paymentStatus === "pending" || order.paymentStatus === "failed";
+  const showRegenerate = order.paymentStatus === "expired" || order.paymentStatus === "cancelled";
 
   const copyId = () => {
     navigator.clipboard?.writeText(order.shortCode).catch(() => {});
@@ -308,7 +361,7 @@ function OrderView({
           {paidWhen && <Detail label="Paid" value={paidWhen} />}
         </div>
 
-        {showPayCta && order.paymentLinkUrl && (
+        {showPayCta && isSafeHttpUrl(order.paymentLinkUrl) && (
           <div className="mt-6 pt-5 border-t border-border/50">
             <p className="text-sm text-muted-foreground mb-3">Payment is pending. Use the secure link to complete it.</p>
             <a
@@ -323,7 +376,25 @@ function OrderView({
           </div>
         )}
 
-        {order.productionStatus === "delivered" && order.deliveryUrl && (
+        {showRegenerate && (
+          <div className="mt-6 pt-5 border-t border-border/50">
+            <p className="text-sm text-muted-foreground mb-3">
+              Your payment link {order.paymentStatus === "expired" ? "expired" : "was cancelled"}. Generate a fresh
+              one to complete your order.
+            </p>
+            <button
+              type="button"
+              onClick={onRegenerate}
+              disabled={regenerating}
+              className="gradient-full text-foreground font-semibold inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm w-full sm:w-auto min-h-[44px] disabled:opacity-60"
+            >
+              {regenerating ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+              Generate a new payment link
+            </button>
+          </div>
+        )}
+
+        {order.productionStatus === "delivered" && isSafeHttpUrl(order.deliveryUrl) && (
           <div className="mt-6 pt-5 border-t border-border/50">
             <p className="text-sm text-muted-foreground mb-3">Your Xenium is ready. Open the private link below to view and share.</p>
             <a

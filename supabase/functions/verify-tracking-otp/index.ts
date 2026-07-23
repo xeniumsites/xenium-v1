@@ -37,14 +37,22 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const supabase = createClient(supabaseUrl, serviceKey)
 
-  // Fetch the request first.
-  const { data: row } = await supabase
+  // Fetch the request first. Look up by short_code (XEN-…) or full UUID.
+  // NOTE: `id` is a uuid column, so we must NOT compare it against a
+  // non-uuid short_code (that raises a 22P02 cast error and fails the whole
+  // query). Pick the column explicitly instead of a raw .or() filter — this
+  // also avoids interpolating user input into the PostgREST filter grammar.
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(code)
+  const lookupColumn = isUuid ? 'id' : 'short_code'
+  const { data: row, error: rowError } = await supabase
     .from('xenium_requests')
     .select(
       'id, short_code, sender_email, occasion, recipient_name, amount_paise, currency, payment_status, production_status, paid_at, payment_link_url, delivery_url, created_at',
     )
-    .or(`short_code.eq.${code},id.eq.${code}`)
+    .eq(lookupColumn, code)
     .maybeSingle()
+
+  if (rowError) console.error('verify-tracking-otp lookup failed', rowError)
 
   const generic = json(404, { error: 'not_found_or_invalid' })
   if (!row) return generic

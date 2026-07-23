@@ -29,7 +29,7 @@ export async function trackOrder(code: string, email: string): Promise<TrackLook
     body: { code, email },
   });
   if (error) {
-    return parseFunctionError(error, "We couldn't find that order.");
+    return await parseFunctionError(error, "We couldn't find that order.");
   }
   const d = data as Record<string, unknown>;
   if (d?.otpRequired) return { otpRequired: true };
@@ -45,7 +45,7 @@ export async function verifyTrackingOtp(
   const { data, error } = await supabase.functions.invoke<unknown>("verify-tracking-otp", {
     body: { code, email, otp },
   });
-  if (error) return parseFunctionError(error, "Invalid or expired code.");
+  if (error) return await parseFunctionError(error, "Invalid or expired code.");
   const d = data as Record<string, unknown>;
   if (d?.error) return { error: String(d.error), message: String(d.message ?? "") };
   return { order: d as unknown as OrderStatus };
@@ -59,9 +59,14 @@ export async function checkPaymentStatus(code: string, email: string): Promise<O
   return data as OrderStatus;
 }
 
-export async function createPaymentLink(requestId: string, senderEmail?: string) {
+/**
+ * (Re)issue a Razorpay payment link for an order. `codeOrId` may be the
+ * customer-facing short code (XEN-…) or the order UUID. `senderEmail` is
+ * required — the edge function uses it as an ownership check.
+ */
+export async function createPaymentLink(codeOrId: string, senderEmail: string) {
   const { data, error } = await supabase.functions.invoke<unknown>("create-payment-link", {
-    body: { requestId, senderEmail },
+    body: { requestId: codeOrId, senderEmail },
   });
   if (error) return null;
   return data as { paymentLinkUrl?: string; paymentStatus?: string; shortCode?: string };
@@ -114,7 +119,22 @@ export function formatINR(paise: number): string {
   return `₹${(paise / 100).toLocaleString("en-IN")}`;
 }
 
-function parseFunctionError(error: unknown, fallback: string): TrackLookupResponse {
+async function parseFunctionError(error: unknown, fallback: string): Promise<TrackLookupResponse> {
+  // supabase-js wraps a non-2xx edge-function response in a FunctionsHttpError
+  // whose `context` is the raw Response. Read the JSON body so the backend's
+  // real error code (e.g. "not_found") reaches friendlyError instead of the
+  // generic "Edge Function returned a non-2xx status code" message.
+  const ctx = (error as { context?: unknown })?.context;
+  if (ctx && typeof (ctx as Response).json === "function") {
+    try {
+      const body = (await (ctx as Response).clone().json()) as { error?: string; message?: string };
+      if (body && typeof body === "object" && body.error) {
+        return { error: String(body.error), message: String(body.message ?? "") };
+      }
+    } catch {
+      // body wasn't JSON — fall through to the generic handling below
+    }
+  }
   if (error && typeof error === "object" && "message" in error) {
     return { error: "function_error", message: String((error as { message?: string }).message) || fallback };
   }
