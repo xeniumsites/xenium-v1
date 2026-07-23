@@ -15,24 +15,22 @@ import Audience from "@/components/xenium/Audience";
 import SocialProof from "@/components/xenium/SocialProof";
 import Pricing from "@/components/xenium/Pricing";
 import RequestForm from "@/components/xenium/RequestForm";
-import FAQ from "@/components/xenium/FAQ";
+import FAQ, { faqs } from "@/components/xenium/FAQ";
 import FinalCTA from "@/components/xenium/FinalCTA";
 import Footer from "@/components/xenium/Footer";
 import StickyMobileCTA from "@/components/xenium/StickyMobileCTA";
 
+// Generated from the same `faqs` array the FAQ section renders, so the
+// structured data always mirrors the visible questions/answers verbatim
+// (Google FAQPage guidelines require a 1:1 match).
 const FAQ_JSONLD = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: [
-    { "@type": "Question", name: "What exactly is a Xenium?", acceptedAnswer: { "@type": "Answer", text: "A Xenium is a beautifully designed, private digital experience created around a personal story or moment. It combines photos, videos, messages, music and animations into an immersive microsite that can be shared via a private link." } },
-    { "@type": "Question", name: "How does the process work?", acceptedAnswer: { "@type": "Answer", text: "Fill out the request form with details about the occasion, the person and the story. After payment, our design team crafts the experience and delivers it via a private link — same-day if ordered before 12 PM IST, otherwise within 24 hours." } },
-    { "@type": "Question", name: "Is my Xenium private?", acceptedAnswer: { "@type": "Answer", text: "Yes. Every Xenium is hosted on a private link only you and your recipient can access. Optional password protection is available for added privacy." } },
-    { "@type": "Question", name: "How long does it take to create?", acceptedAnswer: { "@type": "Answer", text: "Same-day delivery if you order before 12 PM IST. Otherwise, your Xenium is delivered within 24 hours of payment confirmation." } },
-    { "@type": "Question", name: "What media can I include?", acceptedAnswer: { "@type": "Answer", text: "Photos, videos, written messages, background music, animated text, timelines, guest messages and a QR code for easy sharing." } },
-    { "@type": "Question", name: "How is it delivered?", acceptedAnswer: { "@type": "Answer", text: "You receive a private, shareable link via email. A QR code is also generated so you can print it on a physical card or include it with a gift." } },
-    { "@type": "Question", name: "What payment methods do you accept?", acceptedAnswer: { "@type": "Answer", text: "We accept UPI, debit and credit cards, and net banking through our secure payment partner. Payment is collected after we confirm your request and before production begins." } },
-    { "@type": "Question", name: "What if I am not happy with the result?", acceptedAnswer: { "@type": "Answer", text: "Every order is backed by our 100% Happiness Guarantee — free unlimited revisions until you are delighted, or a full refund. No questions asked." } },
-  ],
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
 };
 
 const PRODUCT_JSONLD = {

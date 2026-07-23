@@ -86,6 +86,15 @@ export default function Navbar() {
     el?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const goHome = () => {
+    setMobileOpen(false);
+    if (location.pathname !== "/") {
+      navigate("/");
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -94,14 +103,23 @@ export default function Navbar() {
       aria-label="Primary"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
-        {/*<button*/}
-        {/*  type="button"*/}
-        {/*  onClick={() => scrollTo("#home")}*/}
-        {/*  className="flex items-center gap-2 min-h-[44px]"*/}
-        {/*  aria-label="Xenium home"*/}
-        {/*>*/}
-        {/*  <img src={logo} alt="Xenium" className="h-8 sm:h-10 w-auto object-contain" width={40} height={40} />*/}
-        {/*</button>*/}
+        <button
+          type="button"
+          onClick={goHome}
+          className="flex items-center gap-2 min-h-[44px] shrink-0 group"
+          aria-label="Xenium home"
+        >
+          <img
+            src={logo}
+            alt=""
+            className="h-9 sm:h-10 w-auto object-contain"
+            width={40}
+            height={40}
+          />
+          <span className="font-display text-2xl sm:text-3xl font-semibold leading-none tracking-tight text-foreground">
+            Xenium
+          </span>
+        </button>
 
         <div className="hidden lg:flex items-center gap-7">
           {links.map((l) => {

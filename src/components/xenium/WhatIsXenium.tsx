@@ -10,7 +10,7 @@ const cards = [
     anim: "animate-icon-heartbeat",
     title: "Deeply Personal",
     desc: "Each Xenium is hand-crafted around a real story, a real person, and a real emotion.",
-    proof: "Crafted in 48–72 hours",
+    proof: "Delivered within 24 hours",
   },
   {
     icon: ImageIcon,

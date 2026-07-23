@@ -32,7 +32,6 @@ export default function StickyMobileCTA() {
       className={`fixed inset-x-0 bottom-0 z-40 md:hidden pointer-events-none transition-all duration-300 ${
         visible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
       }`}
-      style={{ paddingRight: "84px" /* leave room for the chat launcher */ }}
       aria-hidden={!visible}
     >
       <div className="bg-gradient-to-t from-background via-background/95 to-background/0 pt-6 pb-3 px-4 safe-bottom">

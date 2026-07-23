@@ -34,6 +34,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { formatINR } from "@/lib/paymentClient";
+import { DELIVERY_SHORT } from "@/lib/delivery";
 import {
   OCCASIONS,
   MOODS,
@@ -115,7 +117,11 @@ export default function RequestForm() {
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [paymentInfo, setPaymentInfo] = useState<{ shortCode?: string; paymentLinkUrl?: string | null } | null>(null);
+  const [paymentInfo, setPaymentInfo] = useState<{
+    shortCode?: string;
+    paymentLinkUrl?: string | null;
+    amountPaise?: number;
+  } | null>(null);
   const formCardRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const totalSteps = 5;
@@ -161,11 +167,16 @@ export default function RequestForm() {
 
   const next = async () => {
     setSubmitError(null);
-    const valid = await trigger(stepFields[step]);
-    if (!valid) {
-      // Focus first errored field of this step
-      const firstError = stepFields[step].find((f) => errors[f]);
-      if (firstError && firstError !== "features" && firstError !== "occasion" && firstError !== "mood" && firstError !== "deadline") {
+    // Validate each field of this step and find the first invalid one from the
+    // trigger result directly — the `errors` object from formState lags by a
+    // render, so reading it here would miss brand-new errors on the first click.
+    let firstError: keyof RequestFormValues | null = null;
+    for (const f of stepFields[step]) {
+      const ok = await trigger(f);
+      if (!ok && !firstError) firstError = f;
+    }
+    if (firstError) {
+      if (firstError !== "features" && firstError !== "occasion" && firstError !== "mood" && firstError !== "deadline") {
         setFocus(firstError as "recipientName" | "recipientRelation" | "senderName" | "senderEmail" | "senderPhone" | "story");
       }
       return;
@@ -188,17 +199,22 @@ export default function RequestForm() {
     try {
       const { website: _hp, ...payload } = values;
       void _hp;
-      const { data, error } = await supabase.functions.invoke<{ shortCode?: string; paymentLinkUrl?: string | null }>(
-        "submit-xenium-request",
-        { body: payload },
-      );
+      const { data, error } = await supabase.functions.invoke<{
+        shortCode?: string;
+        paymentLinkUrl?: string | null;
+        amountPaise?: number;
+      }>("submit-xenium-request", { body: payload });
       if (error) throw error;
       try {
         localStorage.removeItem(DRAFT_KEY);
       } catch {
         // ignore
       }
-      setPaymentInfo({ shortCode: data?.shortCode, paymentLinkUrl: data?.paymentLinkUrl ?? null });
+      setPaymentInfo({
+        shortCode: data?.shortCode,
+        paymentLinkUrl: data?.paymentLinkUrl ?? null,
+        amountPaise: data?.amountPaise,
+      });
       setSubmitted(true);
     } catch (err) {
       console.error("Submit error:", err);
@@ -230,6 +246,7 @@ export default function RequestForm() {
   if (submitted) {
     const code = paymentInfo?.shortCode;
     const payUrl = paymentInfo?.paymentLinkUrl;
+    const amountLabel = paymentInfo?.amountPaise != null ? formatINR(paymentInfo.amountPaise) : null;
     return (
       <section id="create" className="py-20 sm:py-24 px-4 sm:px-6">
         <motion.div
@@ -252,7 +269,7 @@ export default function RequestForm() {
           )}
           <p className="text-muted-foreground max-w-md mx-auto leading-relaxed mb-6">
             {payUrl
-              ? "To begin production, please complete the payment of ₹750 below. We've also emailed you the link."
+              ? `To begin production, please complete the payment${amountLabel ? ` of ${amountLabel}` : ""} below. We've also emailed you the link.`
               : "We've received your details and emailed your team. Production starts as soon as payment is received."}
           </p>
 
@@ -264,7 +281,7 @@ export default function RequestForm() {
                 rel="noopener noreferrer"
                 className="gradient-full text-foreground font-semibold inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full text-base glow-violet min-h-[52px]"
               >
-                <Sparkles size={16} /> Pay ₹750 securely
+                <Sparkles size={16} /> {amountLabel ? `Pay ${amountLabel} securely` : "Pay securely"}
               </a>
               {code && (
                 <button
@@ -292,7 +309,7 @@ export default function RequestForm() {
             <div className="glass-card p-3 sm:p-4 rounded-xl">
               <Sparkles size={14} className="text-xenium-violet-mid mb-2" />
               <p className="text-foreground/85 font-medium">Receive your Xenium</p>
-              <p className="text-muted-foreground/70 text-[11px] sm:text-xs">Same day · within 24 hrs</p>
+              <p className="text-muted-foreground/70 text-[11px] sm:text-xs">Same day · {DELIVERY_SHORT.toLowerCase()}</p>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
@@ -617,7 +634,7 @@ export default function RequestForm() {
                 {/* Step 4: Story & Deadline */}
                 {step === 4 && (
                   <div className="space-y-5 sm:space-y-6">
-                    <p className="text-foreground/30 text-xs italic font-display mb-1">This is where your story begins.</p>
+                    <p className="text-foreground/60 text-xs italic font-display mb-1">This is where your story begins.</p>
                     <div>
                       <label htmlFor="story" className="block text-sm font-medium text-muted-foreground mb-2">
                         Tell us the story <span className="text-xenium-amber">*</span>
@@ -724,7 +741,7 @@ export default function RequestForm() {
               )}
             </div>
 
-            <p className="mt-6 text-[11px] text-muted-foreground/40 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            <p className="mt-6 text-[11px] text-muted-foreground flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
               <span className="inline-flex items-center gap-1.5">
                 <Lock size={11} /> Private & secure
               </span>
@@ -746,7 +763,7 @@ export default function RequestForm() {
               { num: "01", text: "We review your request" },
               { num: "02", text: "We reach out via email within 24 hours" },
               { num: "03", text: "We collect your memories and media" },
-              { num: "04", text: "We craft your Xenium experience in 48–72 hrs" },
+              { num: "04", text: "We craft and deliver your Xenium within 24 hours" },
             ].map((item) => (
               <div key={item.num} className="flex items-start gap-4">
                 <span className="text-xenium-amber/60 font-display text-2xl font-light shrink-0">{item.num}</span>
@@ -754,10 +771,10 @@ export default function RequestForm() {
               </div>
             ))}
           </div>
-          <p className="text-center text-muted-foreground/40 text-xs mt-6 italic">Most Xeniums are delivered within 2–3 days.</p>
+          <p className="text-center text-muted-foreground text-xs mt-6 italic">Order before 12 PM IST for same-day delivery, otherwise within 24 hours.</p>
         </div>
 
-        <p className="text-center text-muted-foreground/30 text-xs mt-6 sm:mt-8 tracking-wide max-w-md mx-auto">
+        <p className="text-center text-muted-foreground text-xs mt-6 sm:mt-8 tracking-wide max-w-md mx-auto">
           Created for birthdays, proposals and life's most meaningful moments. Hand-crafted in India.
         </p>
       </div>

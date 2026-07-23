@@ -104,7 +104,7 @@ export default function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.4 }}
-              className="text-sm md:text-base text-foreground/40 italic max-w-xl mx-auto lg:mx-0 mb-8 sm:mb-10 font-display"
+              className="text-sm md:text-base text-foreground/70 italic max-w-xl mx-auto lg:mx-0 mb-8 sm:mb-10 font-display"
             >
               For someone you love. For a moment that matters.
             </motion.p>
@@ -138,7 +138,7 @@ export default function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.7 }}
-              className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-2 text-[11px] sm:text-xs text-muted-foreground/70 mb-2"
+              className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-2 text-[11px] sm:text-xs text-muted-foreground mb-2"
             >
               <li>
                 <CutoffPill />
