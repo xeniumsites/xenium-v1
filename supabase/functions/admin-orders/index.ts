@@ -81,12 +81,24 @@ Deno.serve(async (req) => {
       return await handleCreateManual(ctx, body)
     case 'resend_payment_email':
       return await handleResendEmail(ctx, body)
+    case 'deliver':
+      return await handleDeliver(ctx, body)
+    case 'resolve_edit_request':
+      return await handleResolveEditRequest(ctx, body)
+    case 'send_test_email':
+      return await handleSendTestEmail(ctx, body)
     case 'delete':
       return await handleDelete(ctx, body)
     default:
       return json(400, { error: 'unknown_action' })
   }
 })
+
+function randomToken(): string {
+  const bytes = new Uint8Array(24)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('')
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 function lookupBy(id: string): { col: 'id' | 'short_code'; val: string } {
@@ -150,7 +162,15 @@ async function handleGet(ctx: AdminContext, body: Record<string, unknown>) {
     return json(500, { error: 'db_error' })
   }
   if (!data) return json(404, { error: 'not_found' })
-  return json(200, { order: data })
+
+  // Also return this order's edit requests (newest first).
+  const { data: editRequests } = await ctx.serviceClient
+    .from('order_edit_requests')
+    .select('*')
+    .eq('request_id', data.id as string)
+    .order('created_at', { ascending: false })
+
+  return json(200, { order: data, editRequests: editRequests ?? [] })
 }
 
 const ALLOWED_FIELDS = new Set([
@@ -159,6 +179,8 @@ const ALLOWED_FIELDS = new Set([
   'delivery_url',
   'admin_notes',
   'amount_paise',
+  'reveal_at',
+  'reveal_password',
 ])
 
 async function handleUpdate(ctx: AdminContext, body: Record<string, unknown>) {
@@ -314,6 +336,133 @@ async function handleDelete(ctx: AdminContext, body: Record<string, unknown>) {
     return json(500, { error: 'db_error' })
   }
   return json(200, { ok: true })
+}
+
+async function handleDeliver(ctx: AdminContext, body: Record<string, unknown>) {
+  const id = (body.id as string | undefined)?.trim()
+  if (!id) return json(400, { error: 'id_required' })
+
+  const embedUrl = (body.embedUrl as string | undefined)?.trim()
+  if (!embedUrl || !/^https?:\/\//i.test(embedUrl)) return json(400, { error: 'invalid_embed_url' })
+
+  let revealAtIso: string | null = null
+  if (body.revealAt) {
+    const d = new Date(String(body.revealAt))
+    if (isNaN(d.getTime())) return json(400, { error: 'invalid_reveal_at' })
+    revealAtIso = d.toISOString()
+  }
+  const revealPassword = (body.revealPassword as string | undefined)?.trim() || null
+  const notify = body.notify !== false
+
+  const lk = lookupBy(id)
+  const { data: row } = await ctx.serviceClient
+    .from('xenium_requests')
+    .select('id, short_code, reveal_token, preview_token')
+    .eq(lk.col, lk.val)
+    .maybeSingle()
+  if (!row) return json(404, { error: 'not_found' })
+
+  const { data, error } = await ctx.serviceClient
+    .from('xenium_requests')
+    .update({
+      delivery_url: embedUrl,
+      reveal_at: revealAtIso,
+      reveal_password: revealPassword,
+      reveal_token: (row.reveal_token as string | null) ?? randomToken(),
+      preview_token: (row.preview_token as string | null) ?? randomToken(),
+      delivered_at: new Date().toISOString(),
+      production_status: 'delivered',
+    })
+    .eq('id', row.id as string)
+    .select('*')
+    .maybeSingle()
+
+  if (error) {
+    console.error('deliver error', error)
+    return json(500, { error: 'db_error' })
+  }
+  if (!data) return json(404, { error: 'not_found' })
+
+  if (notify) await sendDeliveredEmail(data)
+  return json(200, { order: data })
+}
+
+async function handleResolveEditRequest(ctx: AdminContext, body: Record<string, unknown>) {
+  const editId = (body.editId as string | undefined)?.trim()
+  const status = body.status === 'open' ? 'open' : 'resolved'
+  if (!editId) return json(400, { error: 'editId_required' })
+  const { error } = await ctx.serviceClient
+    .from('order_edit_requests')
+    .update({ status })
+    .eq('id', editId)
+  if (error) {
+    console.error('resolve edit error', error)
+    return json(500, { error: 'db_error' })
+  }
+  return json(200, { ok: true })
+}
+
+async function handleSendTestEmail(ctx: AdminContext, body: Record<string, unknown>) {
+  const templateName = (body.templateName as string | undefined)?.trim()
+  const to = (body.to as string | undefined)?.trim().toLowerCase()
+  if (!templateName || !to) return json(400, { error: 'templateName_and_to_required' })
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return json(400, { error: 'invalid_email' })
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  try {
+    const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${serviceKey}`, apikey: serviceKey },
+      body: JSON.stringify({
+        templateName,
+        recipientEmail: to,
+        preview: true,
+        idempotencyKey: `test-${templateName}-${Date.now()}`,
+      }),
+    })
+    const text = await res.text()
+    if (!res.ok) return json(502, { error: 'send_failed', detail: text.slice(0, 300) })
+    return json(200, { ok: true })
+  } catch (e) {
+    console.error('send test email exception', e)
+    return json(502, { error: 'send_failed' })
+  }
+}
+
+async function sendDeliveredEmail(row: Record<string, unknown>) {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  const shortCode = row.short_code as string
+  const revealAt = row.reveal_at as string | null
+  const deliveredAt = row.delivered_at as string | null
+  const fmt = (iso: string) => new Date(iso).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+  try {
+    const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${serviceKey}`, apikey: serviceKey },
+      body: JSON.stringify({
+        templateName: 'order-delivered',
+        recipientEmail: row.sender_email as string,
+        idempotencyKey: `delivered-${row.id}-${Date.now()}`,
+        templateData: {
+          senderName: row.sender_name,
+          recipientName: row.recipient_name,
+          occasion: row.occasion,
+          shortCode,
+          revealUrl: `${SITE_URL}/x/${row.reveal_token}`,
+          previewUrl: `${SITE_URL}/x/${row.preview_token}`,
+          password: (row.reveal_password as string | null) ?? '',
+          revealAtLabel: revealAt ? fmt(revealAt) : '',
+          trackUrl: `${SITE_URL}/track/${shortCode}`,
+          editUntilLabel: deliveredAt ? fmt(new Date(new Date(deliveredAt).getTime() + 24 * 3600 * 1000).toISOString()) : '',
+        },
+      }),
+    })
+    if (!res.ok) console.error('delivered email failed', res.status, await res.text())
+  } catch (e) {
+    console.error('delivered email exception', e)
+  }
 }
 
 async function sendPaymentLinkEmail(

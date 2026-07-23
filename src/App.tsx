@@ -11,6 +11,7 @@ import Unsubscribe from "./pages/Unsubscribe.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
 import TrackOrder from "./pages/TrackOrder.tsx";
+import RevealPage from "./pages/RevealPage.tsx";
 import AdminLogin from "./pages/admin/AdminLogin.tsx";
 import AdminLayout from "./pages/admin/AdminLayout.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/experience/:slug" element={<ExperiencePreview />} />
             <Route path="/track" element={<TrackOrder />} />
             <Route path="/track/:orderId" element={<TrackOrder />} />
+            <Route path="/x/:token" element={<RevealPage />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />

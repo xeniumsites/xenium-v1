@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, Save, Mail, ExternalLink, Copy, Trash2, CheckCircle2 } from "lucide-react";
-import { AdminOrder, adminDeleteOrder, adminGetOrder, adminResendPaymentEmail, adminUpdateOrder } from "@/lib/adminClient";
+import { ArrowLeft, Loader2, Save, Mail, ExternalLink, Copy, Trash2, CheckCircle2, Gift, Wand2, Clock, Check, Eye } from "lucide-react";
+import {
+  AdminOrder,
+  EditRequest,
+  adminDeleteOrder,
+  adminDeliverOrder,
+  adminGetOrder,
+  adminResendPaymentEmail,
+  adminResolveEditRequest,
+  adminUpdateOrder,
+} from "@/lib/adminClient";
 import { formatINR } from "@/lib/paymentClient";
 
 const PAYMENT_OPTIONS = ["pending", "created", "paid", "failed", "cancelled", "expired", "refunded", "waived"];
@@ -23,6 +32,70 @@ export default function AdminOrderDetail() {
   const [deliveryUrl, setDeliveryUrl] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const [emailCustomer, setEmailCustomer] = useState(false);
+  const [editRequests, setEditRequests] = useState<EditRequest[]>([]);
+
+  // Deliver & reveal
+  const [revealAtLocal, setRevealAtLocal] = useState("");
+  const [revealPwd, setRevealPwd] = useState("");
+  const [notifyOnDeliver, setNotifyOnDeliver] = useState(true);
+  const [delivering, setDelivering] = useState(false);
+
+  const toLocalInput = (iso: string | null): string => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const off = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - off).toISOString().slice(0, 16);
+  };
+
+  const applyOrder = (o: AdminOrder) => {
+    setOrder(o);
+    setPaymentStatus(o.payment_status);
+    setProductionStatus(o.production_status);
+    setDeliveryUrl(o.delivery_url ?? "");
+    setAdminNotes(o.admin_notes ?? "");
+    setRevealAtLocal(toLocalInput(o.reveal_at));
+    setRevealPwd(o.reveal_password ?? "");
+  };
+
+  const generatePassword = () => {
+    const first = (order?.recipient_name ?? "").split(/\s+/)[0].replace(/[^A-Za-z]/g, "");
+    const base = first ? first[0].toUpperCase() + first.slice(1).toLowerCase() : "Xenium";
+    setRevealPwd(`${base}${Math.floor(100 + Math.random() * 900)}`);
+  };
+
+  const deliver = async () => {
+    if (!order) return;
+    if (!/^https?:\/\//i.test(deliveryUrl.trim())) {
+      setError("The experience URL must start with http:// or https://");
+      return;
+    }
+    setDelivering(true);
+    setError(null);
+    try {
+      const res = await adminDeliverOrder(order.short_code, {
+        embedUrl: deliveryUrl.trim(),
+        revealAt: revealAtLocal ? new Date(revealAtLocal).toISOString() : null,
+        revealPassword: revealPwd.trim() || null,
+        notify: notifyOnDeliver,
+      });
+      applyOrder(res.order);
+      setSavedFlash(notifyOnDeliver ? "Delivered & customer notified." : "Delivered.");
+      setTimeout(() => setSavedFlash(null), 2500);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delivery failed");
+    } finally {
+      setDelivering(false);
+    }
+  };
+
+  const resolveEdit = async (editId: string, status: "open" | "resolved") => {
+    try {
+      await adminResolveEditRequest(editId, status);
+      setEditRequests((prev) => prev.map((r) => (r.id === editId ? { ...r, status } : r)));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update edit request");
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -32,11 +105,8 @@ export default function AdminOrderDetail() {
     adminGetOrder(id)
       .then((res) => {
         if (cancelled) return;
-        setOrder(res.order);
-        setPaymentStatus(res.order.payment_status);
-        setProductionStatus(res.order.production_status);
-        setDeliveryUrl(res.order.delivery_url ?? "");
-        setAdminNotes(res.order.admin_notes ?? "");
+        applyOrder(res.order);
+        setEditRequests(res.editRequests ?? []);
       })
       .catch((e) => {
         if (cancelled) return;
@@ -155,6 +225,7 @@ export default function AdminOrderDetail() {
   };
 
   const copy = (s: string) => navigator.clipboard?.writeText(s).catch(() => {});
+  const revealBase = typeof window !== "undefined" ? window.location.origin : "https://xenium-sites.com";
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -259,8 +330,10 @@ export default function AdminOrderDetail() {
           <h2 className="text-xs uppercase tracking-widest text-muted-foreground pt-3">Production</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <Select label="Production status" value={productionStatus} onChange={setProductionStatus} options={PRODUCTION_OPTIONS} />
-            <Input label="Delivery URL (private link)" value={deliveryUrl} onChange={setDeliveryUrl} placeholder="https://xenium-sites.com/x/abc" />
           </div>
+          <p className="text-[11px] text-muted-foreground/60">
+            Use the “Deliver &amp; reveal” panel below to attach the experience URL and send it to the customer.
+          </p>
 
           <Textarea label="Admin notes (internal only)" value={adminNotes} onChange={setAdminNotes} placeholder="Anything you want to remember about this order…" />
 
@@ -285,7 +358,138 @@ export default function AdminOrderDetail() {
             </button>
           </div>
         </section>
+
+        {/* Deliver & reveal */}
+        <section className="glass-card p-6 space-y-4 lg:col-span-2">
+          <h2 className="text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+            <Gift size={13} className="text-xenium-amber" /> Deliver &amp; reveal
+          </h2>
+          <p className="text-[11px] text-muted-foreground/70 -mt-1">
+            The experience URL is embedded behind the reveal page and never shown to the recipient until the timer
+            passes and the password matches. The buyer gets a preview link that bypasses both.
+          </p>
+
+          <Input
+            label="Experience URL (embedded — kept private)"
+            value={deliveryUrl}
+            onChange={setDeliveryUrl}
+            placeholder="https://your-built-site.example.com/aisha"
+          />
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground/60 mb-1">Reveal at (optional)</p>
+              <input
+                type="datetime-local"
+                value={revealAtLocal}
+                onChange={(e) => setRevealAtLocal(e.target.value)}
+                className="w-full bg-muted/20 border border-border/60 rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-xenium-violet-mid/40 [color-scheme:dark]"
+              />
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground/60 mb-1">Secret word (optional)</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={revealPwd}
+                  onChange={(e) => setRevealPwd(e.target.value)}
+                  placeholder="e.g. Aisha284"
+                  className="flex-1 min-w-0 bg-muted/20 border border-border/60 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-xenium-violet-mid/40"
+                />
+                <button
+                  type="button"
+                  onClick={generatePassword}
+                  title="Generate from recipient name"
+                  className="shrink-0 px-3 rounded-xl border border-border hover:bg-muted/20 text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs"
+                >
+                  <Wand2 size={13} /> Generate
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <input type="checkbox" checked={notifyOnDeliver} onChange={(e) => setNotifyOnDeliver(e.target.checked)} className="accent-xenium-violet-mid" />
+            Email the buyer their reveal + preview links now
+          </label>
+
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={deliver}
+              disabled={delivering}
+              className="gradient-full text-foreground font-semibold inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm disabled:opacity-60"
+            >
+              {delivering ? <Loader2 size={14} className="animate-spin" /> : <Gift size={14} />}
+              {order.delivered_at ? "Update & re-notify" : "Deliver & notify"}
+            </button>
+          </div>
+
+          {order.reveal_token && (
+            <div className="pt-3 border-t border-border/40 space-y-2 text-sm">
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground/60">Live links</p>
+              <LinkRow icon={<Gift size={12} />} label="Reveal (recipient)" url={`${revealBase}/x/${order.reveal_token}`} onCopy={copy} />
+              {order.preview_token && (
+                <LinkRow icon={<Eye size={12} />} label="Preview (buyer)" url={`${revealBase}/x/${order.preview_token}`} onCopy={copy} />
+              )}
+              {order.reveal_password && (
+                <p className="text-muted-foreground">Secret word: <span className="text-foreground font-medium">{order.reveal_password}</span></p>
+              )}
+              {order.reveal_at && (
+                <p className="text-muted-foreground inline-flex items-center gap-1.5">
+                  <Clock size={12} /> Unlocks {new Date(order.reveal_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
+                </p>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* Edit requests */}
+        <section className="glass-card p-6 space-y-4 lg:col-span-2">
+          <h2 className="text-xs uppercase tracking-widest text-muted-foreground">Edit requests ({editRequests.length})</h2>
+          {editRequests.length === 0 ? (
+            <p className="text-sm text-muted-foreground/70">No edit requests for this order.</p>
+          ) : (
+            <ul className="space-y-3">
+              {editRequests.map((r) => (
+                <li key={r.id} className={`rounded-xl border p-4 ${r.status === "open" ? "border-xenium-amber/40 bg-xenium-amber/5" : "border-border/50 bg-muted/10"}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm text-foreground/90 whitespace-pre-wrap">{r.message}</p>
+                    <button
+                      type="button"
+                      onClick={() => resolveEdit(r.id, r.status === "open" ? "resolved" : "open")}
+                      className="shrink-0 text-xs px-3 py-1.5 rounded-full border border-border hover:bg-muted/20 inline-flex items-center gap-1.5"
+                    >
+                      {r.status === "open" ? <><Check size={12} /> Resolve</> : "Reopen"}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/60 mt-2">
+                    {new Date(r.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} · {r.status}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
+    </div>
+  );
+}
+
+function LinkRow({ icon, label, url, onCopy }: { icon: React.ReactNode; label: string; url: string; onCopy: (s: string) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[11px] text-muted-foreground/70 inline-flex items-center gap-1.5 w-32 shrink-0">{icon} {label}</span>
+      <button
+        type="button"
+        onClick={() => onCopy(url)}
+        title="Copy link"
+        className="flex-1 min-w-0 text-left text-xs text-foreground/80 bg-muted/20 border border-border/50 rounded-lg px-3 py-2 truncate hover:border-xenium-violet-mid/40"
+      >
+        {url}
+      </button>
+      <a href={url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground/60 hover:text-foreground shrink-0" title="Open">
+        <ExternalLink size={13} />
+      </a>
     </div>
   );
 }

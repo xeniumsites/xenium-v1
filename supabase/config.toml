@@ -38,6 +38,15 @@ verify_jwt = false
 [functions.check-payment-status]
 verify_jwt = false
 
+# Public gated reveal — releases the embedded URL only after timer + password
+# (own auth by token, not JWT).
+[functions.reveal-order]
+verify_jwt = false
+
+# Public post-delivery edit request — gated by (code + email) and a 24h window.
+[functions.request-edit]
+verify_jwt = false
+
 # Frontend calls this right after submission with anon JWT.
 [functions.create-payment-link]
 verify_jwt = false

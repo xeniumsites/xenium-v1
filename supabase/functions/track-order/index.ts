@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
   const { data: row } = await supabase
     .from('xenium_requests')
     .select(
-      'id, short_code, sender_email, sender_name, occasion, recipient_name, amount_paise, currency, payment_status, production_status, paid_at, payment_link_url, delivery_url, created_at',
+      'id, short_code, sender_email, sender_name, occasion, recipient_name, amount_paise, currency, payment_status, production_status, paid_at, payment_link_url, reveal_at, reveal_password, reveal_token, preview_token, delivered_at, created_at',
     )
     .eq(lookupColumn, code)
     .maybeSingle()
@@ -127,10 +127,16 @@ function summarize(row: {
   production_status: string
   paid_at: string | null
   payment_link_url: string | null
-  delivery_url: string | null
+  reveal_at: string | null
+  reveal_password: string | null
+  reveal_token: string | null
+  preview_token: string | null
+  delivered_at: string | null
   created_at: string
   sender_name?: string
 }) {
+  // NOTE: the raw embed URL (delivery_url) is intentionally NOT returned — the
+  // reveal page releases it only after the timer + password via reveal-order.
   return {
     shortCode: row.short_code,
     occasion: row.occasion,
@@ -141,7 +147,11 @@ function summarize(row: {
     productionStatus: row.production_status,
     paidAt: row.paid_at,
     paymentLinkUrl: row.payment_link_url,
-    deliveryUrl: row.delivery_url,
+    revealAt: row.reveal_at,
+    revealPassword: row.reveal_password,
+    revealToken: row.reveal_token,
+    previewToken: row.preview_token,
+    deliveredAt: row.delivered_at,
     createdAt: row.created_at,
   }
 }

@@ -10,8 +10,49 @@ export interface OrderStatus {
   productionStatus: string;
   paidAt: string | null;
   paymentLinkUrl: string | null;
-  deliveryUrl: string | null;
+  // Timed-reveal delivery. The raw embed URL is never returned here — the reveal
+  // page releases it via reveal-order. These let the buyer build/share links.
+  revealAt: string | null;
+  revealPassword: string | null;
+  revealToken: string | null;
+  previewToken: string | null;
+  deliveredAt: string | null;
   createdAt: string;
+}
+
+export interface RevealResult {
+  status: "unlocked" | "locked_timer" | "locked_password" | "not_ready" | "not_found";
+  embedUrl?: string;
+  isPreview?: boolean;
+  revealAt?: string;
+  occasion?: string;
+  recipientName?: string;
+  error?: string;
+}
+
+/** Gated reveal lookup by reveal/preview token (+ optional password). */
+export async function revealOrder(token: string, password?: string): Promise<RevealResult> {
+  const { data, error } = await supabase.functions.invoke<unknown>("reveal-order", {
+    body: { token, password },
+  });
+  if (error) {
+    const parsed = await parseFunctionError(error, "not_found");
+    return { status: "not_found", error: parsed.error };
+  }
+  return data as RevealResult;
+}
+
+/** Request a post-delivery edit (within the 24h window). */
+export async function requestEdit(
+  code: string,
+  email: string,
+  message: string,
+): Promise<{ ok?: boolean; error?: string; message?: string }> {
+  const { data, error } = await supabase.functions.invoke<unknown>("request-edit", {
+    body: { code, email, message },
+  });
+  if (error) return await parseFunctionError(error, "Something went wrong.");
+  return data as { ok?: boolean };
 }
 
 export interface TrackLookupResponse {

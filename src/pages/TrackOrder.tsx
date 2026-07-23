@@ -13,6 +13,9 @@ import {
   Sparkles,
   RefreshCw,
   AlertCircle,
+  Eye,
+  Pencil,
+  Gift,
 } from "lucide-react";
 import {
   OrderStatus,
@@ -21,6 +24,7 @@ import {
   formatINR,
   paymentStatusLabel,
   productionStatusLabel,
+  requestEdit,
   trackOrder,
   verifyTrackingOtp,
 } from "@/lib/paymentClient";
@@ -70,7 +74,8 @@ export default function TrackOrder() {
       attempt++;
       const fresh = await checkPaymentStatus(orderShortCode, email);
       if (cancelled) return;
-      if (fresh) setOrder(fresh);
+      // Merge — checkPaymentStatus omits reveal fields; don't clobber them.
+      if (fresh) setOrder((prev) => (prev ? { ...prev, ...fresh } : fresh));
       if (fresh?.paymentStatus !== "paid" && attempt < 6) {
         timer = setTimeout(tick, 4000);
       }
@@ -138,7 +143,8 @@ export default function TrackOrder() {
     if (!order) return;
     setLoading(true);
     const fresh = await checkPaymentStatus(order.shortCode, email);
-    if (fresh) setOrder(fresh);
+    // Merge — checkPaymentStatus omits reveal fields; don't clobber them.
+    if (fresh) setOrder((prev) => (prev ? { ...prev, ...fresh } : fresh));
     setLoading(false);
   };
 
@@ -284,6 +290,7 @@ export default function TrackOrder() {
         {stage === "view" && order && (
           <OrderView
             order={order}
+            email={email}
             onRefresh={refresh}
             loading={loading}
             onReset={reset}
@@ -298,6 +305,7 @@ export default function TrackOrder() {
 
 function OrderView({
   order,
+  email,
   onRefresh,
   loading,
   onReset,
@@ -305,6 +313,7 @@ function OrderView({
   regenerating,
 }: {
   order: OrderStatus;
+  email: string;
   onRefresh: () => void;
   loading: boolean;
   onReset: () => void;
@@ -394,19 +403,8 @@ function OrderView({
           </div>
         )}
 
-        {order.productionStatus === "delivered" && isSafeHttpUrl(order.deliveryUrl) && (
-          <div className="mt-6 pt-5 border-t border-border/50">
-            <p className="text-sm text-muted-foreground mb-3">Your Xenium is ready. Open the private link below to view and share.</p>
-            <a
-              href={order.deliveryUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="gradient-full text-foreground font-semibold inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm w-full sm:w-auto min-h-[44px]"
-            >
-              <Sparkles size={14} /> Open your Xenium
-              <ExternalLink size={14} />
-            </a>
-          </div>
+        {order.productionStatus === "delivered" && order.revealToken && (
+          <DeliveredSection order={order} email={email} />
         )}
       </div>
 
@@ -419,6 +417,159 @@ function OrderView({
       <p className="text-center text-[11px] text-muted-foreground/50 flex items-center justify-center gap-1.5">
         <Clock size={11} /> Page refreshes the latest status from our payment partner on demand.
       </p>
+    </div>
+  );
+}
+
+function CopyRow({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard?.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }).catch(() => {});
+  };
+  return (
+    <div>
+      <p className="text-[11px] uppercase tracking-widest text-muted-foreground/60 mb-1">{label}</p>
+      <button
+        type="button"
+        onClick={copy}
+        className="w-full text-left bg-muted/20 border border-border/60 rounded-lg px-3 py-2.5 text-sm text-foreground/90 break-all inline-flex items-center justify-between gap-2 hover:border-xenium-violet-mid/40 transition-colors"
+      >
+        <span className="truncate">{value}</span>
+        {copied ? <Check size={13} className="text-emerald-400 shrink-0" /> : <Copy size={13} className="text-muted-foreground/60 shrink-0" />}
+      </button>
+    </div>
+  );
+}
+
+function DeliveredSection({ order, email }: { order: OrderStatus; email: string }) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://xenium-sites.com";
+  const revealUrl = `${origin}/x/${order.revealToken}`;
+  const previewUrl = order.previewToken ? `${origin}/x/${order.previewToken}` : null;
+  const revealAtLabel = order.revealAt
+    ? new Date(order.revealAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+    : null;
+
+  const editDeadline = order.deliveredAt ? new Date(order.deliveredAt).getTime() + 24 * 3600 * 1000 : 0;
+  const canEdit = editDeadline > Date.now();
+  const editDeadlineLabel = editDeadline
+    ? new Date(editDeadline).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+    : null;
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const [editDone, setEditDone] = useState(false);
+  const [editErr, setEditErr] = useState<string | null>(null);
+
+  const submitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!msg.trim()) return;
+    setSending(true);
+    setEditErr(null);
+    const res = await requestEdit(order.shortCode, email, msg.trim());
+    setSending(false);
+    if (res.ok) {
+      setEditDone(true);
+      setMsg("");
+    } else {
+      setEditErr(
+        res.error === "edit_window_closed"
+          ? "The 24-hour edit window has closed. Reply to your delivery email and we'll still help."
+          : "We couldn't send your edit request. Please try again or reply to your delivery email.",
+      );
+    }
+  };
+
+  return (
+    <div className="mt-6 pt-5 border-t border-border/50 space-y-5">
+      <div>
+        <p className="text-sm text-foreground/90 font-medium mb-1 flex items-center gap-2">
+          <Gift size={15} className="text-xenium-amber" /> Your Xenium is ready.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Share the reveal link below with {order.recipientName}
+          {revealAtLabel ? ` — it unlocks at ${revealAtLabel}` : ""}
+          {order.revealPassword ? " and asks for the secret word" : ""}.
+        </p>
+      </div>
+
+      <div className="grid gap-3">
+        <CopyRow label={`Reveal link (share with ${order.recipientName})`} value={revealUrl} />
+        {order.revealPassword && (
+          <div>
+            <p className="text-[11px] uppercase tracking-widest text-muted-foreground/60 mb-1">Secret word (share with recipient)</p>
+            <div className="bg-xenium-violet-deep/10 border border-xenium-violet-mid/30 rounded-lg px-3 py-2.5 text-base font-medium text-foreground tracking-wide">
+              {order.revealPassword}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {previewUrl && (
+        <a
+          href={previewUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="gradient-full text-foreground font-semibold inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm w-full sm:w-auto min-h-[44px]"
+        >
+          <Eye size={14} /> Preview your Xenium <ExternalLink size={14} />
+        </a>
+      )}
+
+      {/* Edit requests within 24h */}
+      <div className="pt-4 border-t border-border/40">
+        {editDone ? (
+          <p className="text-sm text-emerald-400 flex items-center gap-2">
+            <Check size={14} /> Thanks — your edit request is in. We'll be in touch shortly.
+          </p>
+        ) : canEdit ? (
+          <>
+            {!editOpen ? (
+              <button
+                type="button"
+                onClick={() => setEditOpen(true)}
+                className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-2"
+              >
+                <Pencil size={13} /> Need a change? Request an edit
+                {editDeadlineLabel ? <span className="text-muted-foreground/50">· until {editDeadlineLabel}</span> : null}
+              </button>
+            ) : (
+              <form onSubmit={submitEdit} className="space-y-3">
+                <p className="text-sm text-foreground/90">What would you like changed?</p>
+                <textarea
+                  value={msg}
+                  onChange={(e) => setMsg(e.target.value)}
+                  rows={3}
+                  maxLength={2000}
+                  autoFocus
+                  placeholder="e.g. Please fix the spelling of her name on the second page…"
+                  className="w-full bg-muted/20 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-xenium-violet-mid/40 focus:ring-2 focus:ring-xenium-violet-mid/20"
+                />
+                {editErr && <p className="text-xenium-rose text-sm">{editErr}</p>}
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={sending || !msg.trim()}
+                    className="gradient-full text-foreground font-semibold px-5 py-2.5 rounded-full text-sm inline-flex items-center gap-2 min-h-[40px] disabled:opacity-60"
+                  >
+                    {sending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Send request
+                  </button>
+                  <button type="button" onClick={() => setEditOpen(false)} className="text-sm text-muted-foreground hover:text-foreground px-3">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+          </>
+        ) : (
+          <p className="text-[11px] text-muted-foreground/60">
+            The 24-hour edit window has closed. Reply to your delivery email if you still need a change.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

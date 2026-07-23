@@ -25,3 +25,5 @@ dist-ssr
 .env
 *.md
 test*
+# Supabase CLI local state
+supabase/.temp

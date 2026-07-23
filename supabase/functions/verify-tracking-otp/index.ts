@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
   const { data: row, error: rowError } = await supabase
     .from('xenium_requests')
     .select(
-      'id, short_code, sender_email, occasion, recipient_name, amount_paise, currency, payment_status, production_status, paid_at, payment_link_url, delivery_url, created_at',
+      'id, short_code, sender_email, occasion, recipient_name, amount_paise, currency, payment_status, production_status, paid_at, payment_link_url, reveal_at, reveal_password, reveal_token, preview_token, delivered_at, created_at',
     )
     .eq(lookupColumn, code)
     .maybeSingle()
@@ -104,7 +104,11 @@ Deno.serve(async (req) => {
     productionStatus: row.production_status,
     paidAt: row.paid_at,
     paymentLinkUrl: row.payment_link_url,
-    deliveryUrl: row.delivery_url,
+    revealAt: row.reveal_at,
+    revealPassword: row.reveal_password,
+    revealToken: row.reveal_token,
+    previewToken: row.preview_token,
+    deliveredAt: row.delivered_at,
     createdAt: row.created_at,
   })
 })
