@@ -30,6 +30,7 @@ async function sendResendEmail(
     idempotency_key: string
     unsubscribe_token?: string
     label?: string
+    attachments?: Array<{ filename: string; content: string; contentType?: string }>
   },
   opts: { apiKey: string; supabaseUrl: string }
 ): Promise<void> {
@@ -54,6 +55,9 @@ async function sendResendEmail(
       html: payload.html,
       text: payload.text,
       headers,
+      attachments: payload.attachments?.length
+        ? payload.attachments.map((a) => ({ filename: a.filename, content: a.content }))
+        : undefined,
       tags: payload.label ? [{ name: 'label', value: payload.label }] : undefined,
     }),
   })
@@ -327,6 +331,7 @@ Deno.serve(async (req) => {
             idempotency_key: payload.idempotency_key,
             unsubscribe_token: payload.unsubscribe_token,
             label: payload.label,
+            attachments: payload.attachments,
           },
           { apiKey, supabaseUrl }
         )

@@ -47,7 +47,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json()
-    const { occasion, recipientName, recipientRelation, senderName, senderEmail, senderPhone, mood, features, story, deadline, website, imageUrls } = body
+    const { occasion, recipientName, recipientRelation, senderName, senderEmail, senderPhone, mood, features, story, deadline, website, attachments } = body
 
     // Honeypot: the real form strips this field before submitting, so any
     // request that includes a non-empty `website` is a bot. Pretend success
@@ -78,14 +78,26 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Validate optional photo uploads: only accept public URLs that live in our
-    // own request-uploads bucket (prevents injecting arbitrary links into the
-    // admin email), capped at 10.
-    const uploadPrefix = `${supabaseUrl}/storage/v1/object/public/request-uploads/`
-    const safeImageUrls: string[] = Array.isArray(imageUrls)
-      ? imageUrls
-          .filter((u: unknown): u is string => typeof u === 'string' && u.startsWith(uploadPrefix))
-          .slice(0, 10)
+    // Validate optional photo attachments (sent along in the admin email, not
+    // stored): each needs filename + base64 content + type; cap count and total
+    // size so the email stays deliverable.
+    const MAX_ATTACHMENTS = 10
+    const MAX_ATTACH_TOTAL_BYTES = 15 * 1024 * 1024
+    type Attach = { filename: string; contentType: string; contentBase64: string }
+    let totalBytes = 0
+    const safeAttachments: Attach[] = Array.isArray(attachments)
+      ? attachments
+          .filter((a: unknown): a is Attach =>
+            !!a && typeof a === 'object' &&
+            typeof (a as Attach).filename === 'string' &&
+            typeof (a as Attach).contentBase64 === 'string' &&
+            (a as Attach).contentBase64.length > 0,
+          )
+          .slice(0, MAX_ATTACHMENTS)
+          .filter((a) => {
+            totalBytes += Math.floor((a.contentBase64.length * 3) / 4) // approx decoded size
+            return totalBytes <= MAX_ATTACH_TOTAL_BYTES
+          })
       : []
 
     const { data: inserted, error: dbError } = await supabase
@@ -102,7 +114,6 @@ serve(async (req) => {
         story,
         deadline,
         amount_paise: DEFAULT_AMOUNT_PAISE,
-        image_urls: safeImageUrls,
       })
       .select('id, short_code, sender_email, sender_name, occasion, amount_paise, currency')
       .single()
@@ -200,6 +211,7 @@ serve(async (req) => {
           templateName: 'new-xenium-request',
           recipientEmail: 'xeniumgifts@gmail.com',
           idempotencyKey: `xenium-request-${inserted.id}`,
+          attachments: safeAttachments,
           templateData: {
             occasion,
             recipientName,
@@ -213,7 +225,7 @@ serve(async (req) => {
             deadline,
             shortCode: inserted.short_code,
             paymentLinkUrl: paymentLinkUrl ?? '(creation failed)',
-            imageUrls: safeImageUrls,
+            attachmentCount: safeAttachments.length,
             submittedAt: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
           },
         }),

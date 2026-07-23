@@ -240,26 +240,6 @@ export default function AdminOrderDetail() {
             <p className="text-[11px] uppercase tracking-widest text-muted-foreground/60 mb-1">Their story</p>
             <p className="text-sm text-foreground/85 whitespace-pre-wrap">{order.story}</p>
           </div>
-          {order.image_urls && order.image_urls.length > 0 && (
-            <div>
-              <p className="text-[11px] uppercase tracking-widest text-muted-foreground/60 mb-2">
-                Attached photos ({order.image_urls.length})
-              </p>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {order.image_urls.map((url, i) => (
-                  <a
-                    key={i}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="aspect-square rounded-lg overflow-hidden border border-border/60 hover:border-xenium-violet-mid/40 transition-colors"
-                  >
-                    <img src={url} alt={`Attachment ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
         </section>
 
         <section className="glass-card p-6 space-y-4 lg:col-span-2">

@@ -39,12 +39,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatINR } from "@/lib/paymentClient";
 import { DELIVERY_SHORT } from "@/lib/delivery";
 import {
-  uploadRequestImages,
+  filesToAttachments,
   isAcceptableImage,
+  totalBytes,
   MAX_REQUEST_IMAGES,
   MAX_IMAGE_BYTES,
+  MAX_TOTAL_ATTACHMENT_BYTES,
   ACCEPTED_IMAGE_TYPES,
-} from "@/lib/storage";
+} from "@/lib/attachments";
 import {
   OCCASIONS,
   MOODS,
@@ -161,9 +163,15 @@ export default function RequestForm() {
     setImageFiles((prev) => {
       const room = MAX_REQUEST_IMAGES - prev.length;
       if (valid.length > room) errors.push(`You can attach up to ${MAX_REQUEST_IMAGES} photos.`);
-      return [...prev, ...valid.slice(0, Math.max(0, room))];
+      let next = [...prev, ...valid.slice(0, Math.max(0, room))];
+      // Keep the whole set email-safe: drop from the end until under the total cap.
+      while (next.length > prev.length && totalBytes(next) > MAX_TOTAL_ATTACHMENT_BYTES) {
+        next = next.slice(0, -1);
+        errors.push(`Total photo size must stay under ${Math.round(MAX_TOTAL_ATTACHMENT_BYTES / 1024 / 1024)}MB — some photos weren't added.`);
+      }
+      return next;
     });
-    if (errors.length) setImageError(errors.join(" · "));
+    if (errors.length) setImageError(Array.from(new Set(errors)).join(" · "));
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -246,23 +254,23 @@ export default function RequestForm() {
       const { website: _hp, ...rest } = values;
       void _hp;
 
-      // Upload optional photos to Storage first; include their public URLs in
-      // the request so the admin email can show them.
-      let imageUrls: string[] = [];
+      // Convert optional photos to base64 attachments for the admin email.
+      let attachments: Awaited<ReturnType<typeof filesToAttachments>> = [];
       if (imageFiles.length > 0) {
         setUploadingImages(true);
-        const { urls, failed } = await uploadRequestImages(imageFiles);
-        setUploadingImages(false);
-        imageUrls = urls;
-        if (failed > 0 && urls.length === 0) {
+        try {
+          attachments = await filesToAttachments(imageFiles);
+        } catch {
+          setUploadingImages(false);
           setSubmitError(
-            "We couldn't upload your photos. Check your connection and try again — or remove them and submit; you can email the photos with the confirmation we send you.",
+            "We couldn't attach your photos. Try again, or remove them and submit — you can email the photos with the confirmation we send you.",
           );
           return;
         }
+        setUploadingImages(false);
       }
 
-      const payload = { ...rest, imageUrls };
+      const payload = { ...rest, attachments };
       const { data, error } = await supabase.functions.invoke<{
         shortCode?: string;
         paymentLinkUrl?: string | null;
@@ -857,7 +865,7 @@ export default function RequestForm() {
                   {isSubmitting ? (
                     <>
                       <Loader2 size={16} className="animate-spin" />{" "}
-                      {uploadingImages ? "Uploading photos…" : "Submitting…"}
+                      {uploadingImages ? "Attaching photos…" : "Submitting…"}
                     </>
                   ) : (
                     <>

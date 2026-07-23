@@ -18,7 +18,7 @@ interface Props {
   submittedAt?: string
   shortCode?: string
   paymentLinkUrl?: string
-  imageUrls?: string[]
+  attachmentCount?: number
 }
 
 const Row = ({ label, value }: { label: string; value?: string }) => (
@@ -32,7 +32,7 @@ const Row = ({ label, value }: { label: string; value?: string }) => (
 
 const NewXeniumRequestEmail = ({
   occasion, recipientName, recipientRelation, senderName, senderEmail,
-  senderPhone, mood, features, story, deadline, submittedAt, shortCode, paymentLinkUrl, imageUrls,
+  senderPhone, mood, features, story, deadline, submittedAt, shortCode, paymentLinkUrl, attachmentCount,
 }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
@@ -85,25 +85,14 @@ const NewXeniumRequestEmail = ({
           </Section>
         )}
 
-        {imageUrls && imageUrls.length > 0 && (
+        {attachmentCount ? (
           <Section style={card}>
-            <Heading as="h2" style={h2}>Attached photos ({imageUrls.length})</Heading>
-            <table role="presentation" cellPadding={0} cellSpacing={0} style={{ borderCollapse: 'collapse' }}>
-              <tbody>
-                <tr>
-                  {imageUrls.map((url, i) => (
-                    <td key={i} style={photoCell}>
-                      <a href={url} target="_blank" rel="noopener noreferrer">
-                        <img src={url} alt={`Attachment ${i + 1}`} width={96} height={96} style={photoImg} />
-                      </a>
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-            <Text style={{ ...footer, marginTop: '10px' }}>Tap any photo to open the full image.</Text>
+            <Heading as="h2" style={h2}>Photos</Heading>
+            <Text style={valueStyle}>
+              📎 {attachmentCount} photo{attachmentCount === 1 ? '' : 's'} attached to this email.
+            </Text>
           </Section>
-        )}
+        ) : null}
 
         <Hr style={hr} />
         <Text style={footer}>
@@ -132,7 +121,7 @@ export const template = {
     story: 'We met in college during the monsoons...',
     deadline: '2026-05-20',
     submittedAt: 'May 3, 2026 · 4:32 PM',
-    imageUrls: [],
+    attachmentCount: 3,
   },
 } satisfies TemplateEntry
 
@@ -149,5 +138,3 @@ const valueStyle: React.CSSProperties = { color: '#0c0c14' }
 const story_: React.CSSProperties = { fontSize: '14px', color: '#0c0c14', lineHeight: 1.6, fontStyle: 'italic', margin: 0 }
 const hr: React.CSSProperties = { borderColor: '#eee', margin: '28px 0 16px' }
 const footer: React.CSSProperties = { fontSize: '12px', color: '#999', margin: 0 }
-const photoCell: React.CSSProperties = { padding: '0 8px 8px 0', verticalAlign: 'top' }
-const photoImg: React.CSSProperties = { width: '96px', height: '96px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #efe7d6', display: 'block' }
