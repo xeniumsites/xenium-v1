@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Plus, ExternalLink, Trash2, Mail, Send, Check } from "lucide-react";
-import { AdminOrder, adminListOrders, adminDeleteOrder, adminSendTestEmail, EMAIL_TEMPLATES } from "@/lib/adminClient";
+import { AdminOrder, adminListOrders, adminDeleteOrder, adminSendTestEmail, adminSendAllTestEmails, EMAIL_TEMPLATES } from "@/lib/adminClient";
 import { formatINR, paymentStatusLabel, productionStatusLabel } from "@/lib/paymentClient";
 
 const PAGE_SIZE = 25;
@@ -61,19 +61,31 @@ export default function AdminDashboard() {
   const [testBusy, setTestBusy] = useState(false);
   const [testMsg, setTestMsg] = useState<string | null>(null);
 
-  const sendTest = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const runTest = async (mode: "one" | "all") => {
     if (!testEmail.trim()) return;
     setTestBusy(true);
     setTestMsg(null);
     try {
-      await adminSendTestEmail(testTemplate, testEmail.trim());
-      setTestMsg(`Sent "${testTemplate}" to ${testEmail.trim()}.`);
+      const res =
+        mode === "all"
+          ? await adminSendAllTestEmails(testEmail.trim())
+          : await adminSendTestEmail(testTemplate, testEmail.trim());
+      const label = mode === "all" ? `all ${res.total} templates` : `"${testTemplate}"`;
+      setTestMsg(
+        res.failures.length
+          ? `Sent ${res.sent}/${res.total} to ${testEmail.trim()} — failed: ${res.failures.join(", ")}`
+          : `Sent ${label} to ${testEmail.trim()}.`,
+      );
     } catch (err) {
       setTestMsg(err instanceof Error ? err.message : "Failed to send test email");
     } finally {
       setTestBusy(false);
     }
+  };
+
+  const sendTest = (e: React.FormEvent) => {
+    e.preventDefault();
+    void runTest("one");
   };
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -136,13 +148,24 @@ export default function AdminDashboard() {
               className="w-full px-4 py-2.5 rounded-full bg-muted/20 border border-border/60 text-sm focus:outline-none focus:border-xenium-violet-mid/40"
             />
           </div>
-          <button
-            type="submit"
-            disabled={testBusy || !testEmail.trim()}
-            className="gradient-full text-foreground font-semibold inline-flex items-center justify-center gap-2 px-5 min-h-[42px] rounded-full text-sm disabled:opacity-60"
-          >
-            {testBusy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Send
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={testBusy || !testEmail.trim()}
+              className="gradient-full text-foreground font-semibold inline-flex items-center justify-center gap-2 px-5 min-h-[42px] rounded-full text-sm disabled:opacity-60"
+            >
+              {testBusy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Send
+            </button>
+            <button
+              type="button"
+              onClick={() => void runTest("all")}
+              disabled={testBusy || !testEmail.trim()}
+              title="Send every template to this address"
+              className="min-h-[42px] px-4 rounded-full border border-border text-sm text-muted-foreground hover:text-foreground hover:border-xenium-violet-mid/40 disabled:opacity-60 whitespace-nowrap"
+            >
+              Send all
+            </button>
+          </div>
           {testMsg && (
             <p className="sm:col-span-3 text-xs text-muted-foreground inline-flex items-center gap-1.5">
               <Check size={12} className="text-emerald-400" /> {testMsg}

@@ -402,12 +402,21 @@ async function handleResolveEditRequest(ctx: AdminContext, body: Record<string, 
   return json(200, { ok: true })
 }
 
-async function handleSendTestEmail(ctx: AdminContext, body: Record<string, unknown>) {
-  const templateName = (body.templateName as string | undefined)?.trim()
-  const to = (body.to as string | undefined)?.trim().toLowerCase()
-  if (!templateName || !to) return json(400, { error: 'templateName_and_to_required' })
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return json(400, { error: 'invalid_email' })
+// Keep in sync with the registry in
+// _shared/transactional-email-templates/registry.ts (hardcoded here so this
+// lightweight function doesn't have to bundle the React Email templates).
+const TEST_TEMPLATE_NAMES = [
+  'new-xenium-request',
+  'customer-payment-link',
+  'payment-confirmed',
+  'order-status-update',
+  'tracking-otp',
+  'order-delivered',
+  'edit-request-received',
+  'edit-request-ack',
+]
 
+async function sendPreviewEmail(templateName: string, to: string): Promise<boolean> {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   try {
@@ -418,16 +427,34 @@ async function handleSendTestEmail(ctx: AdminContext, body: Record<string, unkno
         templateName,
         recipientEmail: to,
         preview: true,
-        idempotencyKey: `test-${templateName}-${Date.now()}`,
+        idempotencyKey: `test-${templateName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       }),
     })
-    const text = await res.text()
-    if (!res.ok) return json(502, { error: 'send_failed', detail: text.slice(0, 300) })
-    return json(200, { ok: true })
+    if (!res.ok) console.error('test email failed', templateName, res.status, (await res.text()).slice(0, 200))
+    return res.ok
   } catch (e) {
-    console.error('send test email exception', e)
-    return json(502, { error: 'send_failed' })
+    console.error('send test email exception', templateName, e)
+    return false
   }
+}
+
+async function handleSendTestEmail(_ctx: AdminContext, body: Record<string, unknown>) {
+  const to = (body.to as string | undefined)?.trim().toLowerCase()
+  if (!to) return json(400, { error: 'to_required' })
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return json(400, { error: 'invalid_email' })
+
+  // `all: true` sends every template; otherwise send the single named template.
+  const names = body.all === true
+    ? TEST_TEMPLATE_NAMES
+    : [(body.templateName as string | undefined)?.trim()].filter((n): n is string => !!n)
+  if (names.length === 0) return json(400, { error: 'templateName_required' })
+
+  const failures: string[] = []
+  for (const name of names) {
+    const ok = await sendPreviewEmail(name, to)
+    if (!ok) failures.push(name)
+  }
+  return json(200, { ok: failures.length === 0, sent: names.length - failures.length, total: names.length, failures })
 }
 
 async function sendDeliveredEmail(row: Record<string, unknown>) {

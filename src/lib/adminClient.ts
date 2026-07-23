@@ -94,8 +94,20 @@ export async function adminResolveEditRequest(editId: string, status: "open" | "
   return await call<{ ok: boolean }>("resolve_edit_request", { editId, status });
 }
 
-export async function adminSendTestEmail(templateName: string, to: string): Promise<{ ok: boolean }> {
-  return await call<{ ok: boolean }>("send_test_email", { templateName, to });
+export interface TestEmailResult {
+  ok: boolean;
+  sent: number;
+  total: number;
+  failures: string[];
+}
+
+export async function adminSendTestEmail(templateName: string, to: string): Promise<TestEmailResult> {
+  return await call<TestEmailResult>("send_test_email", { templateName, to });
+}
+
+/** Send every template (preview data) to the target address in one call. */
+export async function adminSendAllTestEmails(to: string): Promise<TestEmailResult> {
+  return await call<TestEmailResult>("send_test_email", { all: true, to });
 }
 
 export async function adminUpdateOrder(
