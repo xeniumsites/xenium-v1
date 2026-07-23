@@ -115,33 +115,18 @@ DROP POLICY IF EXISTS "Admins update all requests" ON public.xenium_requests;
 CREATE POLICY "Admins update all requests" ON public.xenium_requests
   FOR UPDATE USING (public.is_admin(auth.uid())) WITH CHECK (public.is_admin(auth.uid()));
 
--- Create admin auth user (xeniumgifts@gmail.com / admin#1234) and link as admin
-DO $$
-DECLARE
-  v_user_id UUID;
-  v_email TEXT := 'xeniumgifts@gmail.com';
-  v_password TEXT := 'admin#1234';
-BEGIN
-  SELECT id INTO v_user_id FROM auth.users WHERE email = v_email;
-  IF v_user_id IS NULL THEN
-    v_user_id := gen_random_uuid();
-    INSERT INTO auth.users (
-      instance_id, id, aud, role, email, encrypted_password,
-      email_confirmed_at, created_at, updated_at, confirmation_token,
-      email_change, email_change_token_new, recovery_token,
-      raw_app_meta_data, raw_user_meta_data, is_super_admin
-    ) VALUES (
-      '00000000-0000-0000-0000-000000000000', v_user_id, 'authenticated', 'authenticated',
-      v_email, crypt(v_password, gen_salt('bf')),
-      now(), now(), now(), '', '', '', '',
-      '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false
-    );
-    INSERT INTO auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
-    VALUES (gen_random_uuid(), v_user_id,
-      jsonb_build_object('sub', v_user_id::text, 'email', v_email, 'email_verified', true),
-      'email', v_user_id::text, now(), now(), now());
-  END IF;
-  INSERT INTO public.admin_users (user_id, email, display_name)
-  VALUES (v_user_id, v_email, 'Xenium Admin')
-  ON CONFLICT (user_id) DO NOTHING;
-END$$;
+-- Admin provisioning is intentionally NOT done here.
+--
+-- SECURITY: A previous version of this migration seeded a real Supabase Auth
+-- user with a hard-coded plaintext password directly in source. That is a
+-- credential leak (it lives in git history forever) and has been removed.
+--
+-- Provision admins out-of-band instead (as migration 20260505020000 prescribes):
+--   1. Supabase Dashboard → Authentication → Add user (set a strong password).
+--   2. One-off, NON-committed SQL to grant admin:
+--        insert into public.admin_users (user_id, email, display_name)
+--        select id, email, 'Xenium Admin' from auth.users where email = '<admin email>'
+--        on conflict (user_id) do nothing;
+--
+-- If the old block was ever applied to an environment, rotate that account's
+-- password immediately and treat the old credential as compromised.
