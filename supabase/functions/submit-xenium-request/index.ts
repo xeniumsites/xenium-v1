@@ -47,7 +47,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json()
-    const { occasion, recipientName, recipientRelation, senderName, senderEmail, senderPhone, mood, features, story, deadline, website } = body
+    const { occasion, recipientName, recipientRelation, senderName, senderEmail, senderPhone, mood, features, story, deadline, website, imageUrls } = body
 
     // Honeypot: the real form strips this field before submitting, so any
     // request that includes a non-empty `website` is a bot. Pretend success
@@ -78,6 +78,16 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
+    // Validate optional photo uploads: only accept public URLs that live in our
+    // own request-uploads bucket (prevents injecting arbitrary links into the
+    // admin email), capped at 10.
+    const uploadPrefix = `${supabaseUrl}/storage/v1/object/public/request-uploads/`
+    const safeImageUrls: string[] = Array.isArray(imageUrls)
+      ? imageUrls
+          .filter((u: unknown): u is string => typeof u === 'string' && u.startsWith(uploadPrefix))
+          .slice(0, 10)
+      : []
+
     const { data: inserted, error: dbError } = await supabase
       .from('xenium_requests')
       .insert({
@@ -92,6 +102,7 @@ serve(async (req) => {
         story,
         deadline,
         amount_paise: DEFAULT_AMOUNT_PAISE,
+        image_urls: safeImageUrls,
       })
       .select('id, short_code, sender_email, sender_name, occasion, amount_paise, currency')
       .single()
@@ -202,6 +213,7 @@ serve(async (req) => {
             deadline,
             shortCode: inserted.short_code,
             paymentLinkUrl: paymentLinkUrl ?? '(creation failed)',
+            imageUrls: safeImageUrls,
             submittedAt: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
           },
         }),

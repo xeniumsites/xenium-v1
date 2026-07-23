@@ -31,11 +31,20 @@ import {
   ShieldCheck,
   Lock,
   Mail,
+  ImagePlus,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatINR } from "@/lib/paymentClient";
 import { DELIVERY_SHORT } from "@/lib/delivery";
+import {
+  uploadRequestImages,
+  isAcceptableImage,
+  MAX_REQUEST_IMAGES,
+  MAX_IMAGE_BYTES,
+  ACCEPTED_IMAGE_TYPES,
+} from "@/lib/storage";
 import {
   OCCASIONS,
   MOODS,
@@ -126,6 +135,43 @@ export default function RequestForm() {
   const navigate = useNavigate();
   const totalSteps = 5;
 
+  // Optional photo uploads (up to 10) — attached to the admin email on submit.
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const addImages = (incoming: FileList | null) => {
+    if (!incoming || incoming.length === 0) return;
+    setImageError(null);
+    const picked = Array.from(incoming);
+    const errors: string[] = [];
+    const valid: File[] = [];
+    for (const f of picked) {
+      if (!isAcceptableImage(f)) {
+        errors.push(
+          f.size > MAX_IMAGE_BYTES
+            ? `"${f.name}" is over ${Math.round(MAX_IMAGE_BYTES / 1024 / 1024)}MB`
+            : `"${f.name}" is not a supported image`,
+        );
+        continue;
+      }
+      valid.push(f);
+    }
+    setImageFiles((prev) => {
+      const room = MAX_REQUEST_IMAGES - prev.length;
+      if (valid.length > room) errors.push(`You can attach up to ${MAX_REQUEST_IMAGES} photos.`);
+      return [...prev, ...valid.slice(0, Math.max(0, room))];
+    });
+    if (errors.length) setImageError(errors.join(" · "));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeImage = (index: number) => {
+    setImageError(null);
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const {
     register,
     handleSubmit,
@@ -197,8 +243,26 @@ export default function RequestForm() {
       return;
     }
     try {
-      const { website: _hp, ...payload } = values;
+      const { website: _hp, ...rest } = values;
       void _hp;
+
+      // Upload optional photos to Storage first; include their public URLs in
+      // the request so the admin email can show them.
+      let imageUrls: string[] = [];
+      if (imageFiles.length > 0) {
+        setUploadingImages(true);
+        const { urls, failed } = await uploadRequestImages(imageFiles);
+        setUploadingImages(false);
+        imageUrls = urls;
+        if (failed > 0 && urls.length === 0) {
+          setSubmitError(
+            "We couldn't upload your photos. Check your connection and try again — or remove them and submit; you can email the photos with the confirmation we send you.",
+          );
+          return;
+        }
+      }
+
+      const payload = { ...rest, imageUrls };
       const { data, error } = await supabase.functions.invoke<{
         shortCode?: string;
         paymentLinkUrl?: string | null;
@@ -230,6 +294,8 @@ export default function RequestForm() {
     setSubmitted(false);
     setSubmitError(null);
     setStep(0);
+    setImageFiles([]);
+    setImageError(null);
     reset(initial);
     try {
       localStorage.removeItem(DRAFT_KEY);
@@ -697,6 +763,66 @@ export default function RequestForm() {
                         </div>
                       )}
                     />
+
+                    {/* Optional photo uploads */}
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">
+                        Add a few photos <span className="text-muted-foreground/60 font-normal">(optional, up to {MAX_REQUEST_IMAGES})</span>
+                      </label>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                        multiple
+                        className="sr-only"
+                        onChange={(e) => addImages(e.target.files)}
+                      />
+
+                      {imageFiles.length > 0 && (
+                        <ul className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mb-3">
+                          {imageFiles.map((file, i) => (
+                            <li key={`${file.name}-${i}`} className="relative aspect-square rounded-xl overflow-hidden border border-border/60 group">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={file.name}
+                                className="w-full h-full object-cover"
+                                onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImage(i)}
+                                aria-label={`Remove ${file.name}`}
+                                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-background/80 backdrop-blur border border-border/60 flex items-center justify-center text-foreground/80 hover:text-xenium-rose hover:border-xenium-rose/50 transition-colors"
+                              >
+                                <X size={13} />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {imageFiles.length < MAX_REQUEST_IMAGES && (
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full border border-dashed border-border/70 rounded-xl px-4 py-4 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground hover:border-xenium-violet-mid/40 transition-colors min-h-[52px]"
+                        >
+                          <ImagePlus size={16} />
+                          {imageFiles.length === 0 ? "Add photos" : `Add more (${imageFiles.length}/${MAX_REQUEST_IMAGES})`}
+                        </button>
+                      )}
+
+                      {imageError && (
+                        <p className="mt-2 text-xs text-xenium-rose flex items-start gap-1.5">
+                          <AlertCircle size={12} className="mt-0.5 shrink-0" /> {imageError}
+                        </p>
+                      )}
+
+                      <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
+                        No photos shortlisted yet? No problem — you can always send them in the confirmation email
+                        we'll send you right after this.
+                      </p>
+                    </div>
                   </div>
                 )}
               </motion.div>
@@ -730,7 +856,8 @@ export default function RequestForm() {
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 size={16} className="animate-spin" /> Submitting…
+                      <Loader2 size={16} className="animate-spin" />{" "}
+                      {uploadingImages ? "Uploading photos…" : "Submitting…"}
                     </>
                   ) : (
                     <>

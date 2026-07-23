@@ -13,6 +13,7 @@ export interface AdminOrder {
   features: string[];
   story: string;
   deadline: string;
+  image_urls: string[] | null;
   amount_paise: number;
   currency: string;
   payment_link_id: string | null;
