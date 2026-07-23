@@ -2,8 +2,9 @@
 // the link details on the row. Idempotent: if a non-cancelled link already
 // exists for this request, returns the existing one.
 //
-// Auth: callable by service role (server-to-server) OR by anon (frontend right
-// after the request is created — verifies the row matches the supplied email).
+// Auth: verify_jwt = false. Ownership is enforced by requiring senderEmail and
+// checking it against the order row (soft auth) — the requestId alone is not
+// sufficient. Used by the tracking page to (re)issue a link for an order.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
@@ -27,18 +28,23 @@ Deno.serve(async (req) => {
   const requestId = body.requestId?.trim()
   const senderEmail = body.senderEmail?.trim().toLowerCase()
   if (!requestId) return json(400, { error: 'requestId_required' })
+  // Ownership gate: require the sender email so it can't be skipped by
+  // omission (the check below is a no-op when senderEmail is absent).
+  if (!senderEmail) return json(400, { error: 'senderEmail_required' })
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const supabase = createClient(supabaseUrl, serviceKey)
 
-  // Fetch the request row.
+  // Fetch the request row. requestId may be the order UUID or the short code —
+  // pick the column explicitly (never compare a non-uuid against the uuid `id`).
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestId)
   const { data: row, error: rowErr } = await supabase
     .from('xenium_requests')
     .select(
       'id, short_code, sender_name, sender_email, sender_phone, occasion, amount_paise, currency, payment_link_id, payment_link_url, payment_status',
     )
-    .eq('id', requestId)
+    .eq(isUuid ? 'id' : 'short_code', requestId)
     .maybeSingle()
 
   if (rowErr) {
@@ -47,9 +53,9 @@ Deno.serve(async (req) => {
   }
   if (!row) return json(404, { error: 'request_not_found' })
 
-  // Soft auth: if the caller provided an email, it must match the row.
-  // This stops random callers from creating links for unrelated orders.
-  if (senderEmail && senderEmail !== row.sender_email.toLowerCase()) {
+  // Soft auth: the supplied email must match the row. This stops random
+  // callers from creating links for unrelated orders.
+  if (senderEmail !== row.sender_email.toLowerCase()) {
     return json(403, { error: 'email_mismatch' })
   }
 
@@ -66,6 +72,24 @@ Deno.serve(async (req) => {
   if (row.payment_link_id && row.payment_link_url && row.payment_status !== 'cancelled' && row.payment_status !== 'expired') {
     try {
       const fresh = await fetchPaymentLink(row.payment_link_id)
+      if (fresh.status === 'paid') {
+        // Razorpay already reports this link paid but our row is stale (webhook
+        // lag or a missed webhook). Reconcile to paid and return the existing
+        // link — do NOT create a new one, which would revert the order to
+        // 'created' and prompt the customer to pay a second time.
+        const updates: Record<string, unknown> = {
+          payment_status: 'paid',
+          paid_at: new Date().toISOString(),
+          production_status: 'queued',
+        }
+        if (fresh.payments?.[0]?.payment_id) updates.razorpay_payment_id = fresh.payments[0].payment_id
+        await supabase.from('xenium_requests').update(updates).eq('id', row.id)
+        return json(200, {
+          paymentLinkUrl: row.payment_link_url,
+          paymentStatus: 'paid',
+          shortCode: row.short_code,
+        })
+      }
       if (fresh.status === 'created' || fresh.status === 'partially_paid') {
         return json(200, {
           paymentLinkUrl: row.payment_link_url,
@@ -73,7 +97,7 @@ Deno.serve(async (req) => {
           shortCode: row.short_code,
         })
       }
-      // Otherwise fall through and create a fresh one.
+      // Otherwise (cancelled/expired at Razorpay) fall through and create a fresh one.
     } catch (e) {
       console.warn('Existing link fetch failed, creating new', e)
     }

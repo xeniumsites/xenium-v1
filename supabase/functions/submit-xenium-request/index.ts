@@ -217,6 +217,8 @@ serve(async (req) => {
         message: 'Request received successfully',
         shortCode: inserted.short_code,
         id: inserted.id,
+        amountPaise: inserted.amount_paise,
+        currency: inserted.currency,
         paymentLinkUrl,
         paymentStatus,
       }),

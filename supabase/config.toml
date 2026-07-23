@@ -16,6 +16,13 @@ verify_jwt = false
 
 # --- payments / tracking / admin ---
 
+# Main request form endpoint. Invoked from the browser with the anon key (a
+# valid JWT), so verify_jwt = true still lets the public form through while
+# rejecting unauthenticated (no-JWT) calls. Declared explicitly so every
+# deployed function's exposure is visible in one place.
+[functions.submit-xenium-request]
+verify_jwt = true
+
 # Webhook endpoint hit by Razorpay servers — must be public (no JWT).
 # Authentication happens via X-Razorpay-Signature header inside the function.
 [functions.razorpay-webhook]

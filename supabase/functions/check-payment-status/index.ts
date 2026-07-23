@@ -27,21 +27,32 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  const requireOtp = (Deno.env.get('TRACK_REQUIRE_OTP') ?? 'false').toLowerCase() === 'true'
   const supabase = createClient(supabaseUrl, serviceKey)
 
   // Allow lookup by short_code (XEN-…) or full UUID.
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(code)
   const lookupColumn = isUuid ? 'id' : 'short_code'
-  const { data: row } = await supabase
+  const { data: row, error: rowError } = await supabase
     .from('xenium_requests')
     .select(
-      'id, short_code, payment_link_id, payment_link_url, payment_status, paid_at, production_status, sender_email, occasion, recipient_name, amount_paise, currency',
+      'id, short_code, payment_link_id, payment_link_url, payment_status, paid_at, production_status, sender_email, occasion, recipient_name, amount_paise, currency, tracking_email_verified_at',
     )
     .eq(lookupColumn, code)
     .maybeSingle()
 
-  if (!row) return json(404, { error: 'not_found' })
-  if (row.sender_email.toLowerCase() !== email) return json(403, { error: 'mismatch' })
+  if (rowError) console.error('check-payment-status lookup failed', rowError)
+
+  // Respond uniformly for "no such order" and "email mismatch" so this public
+  // endpoint can't be used to enumerate valid short codes (mirrors track-order).
+  const generic = json(404, { error: 'not_found' })
+  if (!row) return generic
+  if (row.sender_email.toLowerCase() !== email) return generic
+
+  // When OTP gating is enabled, order data is only readable after the caller
+  // has verified an emailed OTP (which stamps tracking_email_verified_at).
+  // Don't let this endpoint bypass that gate.
+  if (requireOtp && !row.tracking_email_verified_at) return generic
 
   // If link exists and we're not already paid, ask Razorpay for current state.
   if (row.payment_link_id && row.payment_status !== 'paid' && row.payment_status !== 'waived') {

@@ -82,10 +82,18 @@ Deno.serve(async (req) => {
       break
     }
     case 'payment_link.cancelled':
-      updates.payment_status = 'cancelled'
+      // Never downgrade an already-paid/waived order. Webhook delivery order
+      // is not guaranteed, so a late/stray cancelled event must not clobber a
+      // successful payment.
+      if (row.payment_status !== 'paid' && row.payment_status !== 'waived') {
+        updates.payment_status = 'cancelled'
+      }
       break
     case 'payment_link.expired':
-      updates.payment_status = 'expired'
+      // Same guard as cancelled — an expired event must not overwrite 'paid'.
+      if (row.payment_status !== 'paid' && row.payment_status !== 'waived') {
+        updates.payment_status = 'expired'
+      }
       break
     case 'payment.failed':
       // Don't downgrade a paid order; only mark failed if still pending/created.
