@@ -1,7 +1,7 @@
 {
   "name": "Xenium — Personalized Digital Gifts",
   "short_name": "Xenium",
-  "description": "Premium personalized digital gifting and cinematic experiences. Hand-crafted in same-day or within 24 hours. From ₹750.",
+  "description": "Premium personalized digital gifting and cinematic experiences. Delivered same-day if ordered before 12 PM IST, otherwise within 24 hours. From ₹750.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
