@@ -16,13 +16,17 @@ export default function AdminLogin() {
     document.title = "Admin sign in | Xenium";
   }, []);
 
+  // Signed in but not an admin — sign out so the user can try again.
+  // Must run as an effect, not during render (render has to stay pure).
+  useEffect(() => {
+    if (!auth.loading && auth.session && auth.isAdmin === false) {
+      void supabase.auth.signOut();
+    }
+  }, [auth.loading, auth.session, auth.isAdmin]);
+
   // Already signed in as admin → bounce to dashboard.
   if (!auth.loading && auth.session && auth.isAdmin) {
     return <Navigate to="/admin" replace />;
-  }
-  if (!auth.loading && auth.session && auth.isAdmin === false) {
-    // Signed in but not an admin — sign out so the user can try again.
-    void supabase.auth.signOut();
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -112,15 +112,20 @@ async function handleList(ctx: AdminContext, body: Record<string, unknown>) {
   if (paymentStatus) q = q.eq('payment_status', paymentStatus)
   if (productionStatus) q = q.eq('production_status', productionStatus)
   if (search) {
-    q = q.or(
-      [
-        `short_code.ilike.%${search}%`,
-        `sender_email.ilike.%${search}%`,
-        `sender_name.ilike.%${search}%`,
-        `recipient_name.ilike.%${search}%`,
-        `occasion.ilike.%${search}%`,
-      ].join(','),
-    )
+    // Strip characters that are structural in PostgREST's .or() filter grammar
+    // (commas, parens, backslash) to prevent filter injection, and cap length.
+    const safe = search.replace(/[,()\\]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80)
+    if (safe) {
+      q = q.or(
+        [
+          `short_code.ilike.%${safe}%`,
+          `sender_email.ilike.%${safe}%`,
+          `sender_name.ilike.%${safe}%`,
+          `recipient_name.ilike.%${safe}%`,
+          `occasion.ilike.%${safe}%`,
+        ].join(','),
+      )
+    }
   }
 
   const { data, error, count } = await q
@@ -167,6 +172,12 @@ async function handleUpdate(ctx: AdminContext, body: Record<string, unknown>) {
     if (ALLOWED_FIELDS.has(k)) safe[k] = v
   }
   if (Object.keys(safe).length === 0) return json(400, { error: 'no_fields' })
+
+  // delivery_url is rendered as a clickable link on the public tracking page.
+  // Only allow http/https so a bad value can never become a javascript:/data: href.
+  if (typeof safe.delivery_url === 'string' && safe.delivery_url && !/^https?:\/\//i.test(safe.delivery_url)) {
+    return json(400, { error: 'invalid_delivery_url' })
+  }
 
   // Stamp paid_at if status flips to paid
   if (safe.payment_status === 'paid') {

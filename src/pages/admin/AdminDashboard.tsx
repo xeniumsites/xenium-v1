@@ -47,8 +47,11 @@ export default function AdminDashboard() {
 
   const onSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setPage(0);
-    void load();
+    // If we're not already on page 0, just reset the page and let the [page]
+    // effect drive the fetch — calling load() here would use the stale page
+    // offset (setPage is async) and race the effect's offset-0 fetch.
+    if (page !== 0) setPage(0);
+    else void load();
   };
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));

@@ -66,20 +66,39 @@ export default function AdminOrderDetail() {
   }
 
   const save = async () => {
-    setSaveBusy(true);
     setError(null);
+
+    // Only send fields the admin actually changed (dirty-tracking). Sending the
+    // whole form would let a stale dropdown value overwrite a field the webhook
+    // updated after this page loaded (e.g. revert a webhook-confirmed 'paid').
+    const patch: Parameters<typeof adminUpdateOrder>[1] = {};
+    if (paymentStatus !== order.payment_status) patch.payment_status = paymentStatus;
+    if (productionStatus !== order.production_status) patch.production_status = productionStatus;
+    const nextDelivery = deliveryUrl.trim() || null;
+    if (nextDelivery !== (order.delivery_url ?? null)) patch.delivery_url = nextDelivery;
+    const nextNotes = adminNotes.trim() || null;
+    if (nextNotes !== (order.admin_notes ?? null)) patch.admin_notes = nextNotes;
+
+    if (nextDelivery && !/^https?:\/\//i.test(nextDelivery)) {
+      setError("Delivery URL must start with http:// or https://");
+      return;
+    }
+
+    if (Object.keys(patch).length === 0 && !emailCustomer) {
+      setSavedFlash("No changes to save.");
+      setTimeout(() => setSavedFlash(null), 2500);
+      return;
+    }
+
+    setSaveBusy(true);
     try {
-      const res = await adminUpdateOrder(
-        order.short_code,
-        {
-          payment_status: paymentStatus,
-          production_status: productionStatus,
-          delivery_url: deliveryUrl.trim() || null,
-          admin_notes: adminNotes.trim() || null,
-        },
-        { emailCustomer },
-      );
+      const res = await adminUpdateOrder(order.short_code, patch, { emailCustomer });
       setOrder(res.order);
+      // Re-sync editable fields to the server's post-update truth.
+      setPaymentStatus(res.order.payment_status);
+      setProductionStatus(res.order.production_status);
+      setDeliveryUrl(res.order.delivery_url ?? "");
+      setAdminNotes(res.order.admin_notes ?? "");
       setSavedFlash("Saved.");
       setTimeout(() => setSavedFlash(null), 2500);
     } catch (e) {
