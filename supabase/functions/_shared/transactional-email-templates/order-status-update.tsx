@@ -18,6 +18,11 @@ interface Props {
 }
 
 const STATUS_COPY: Record<string, { headline: string; lead: string; cta: string }> = {
+  awaiting_payment: {
+    headline: 'Your Xenium is awaiting payment',
+    lead: 'We have your request. Once your payment is complete, our design team begins crafting your Xenium.',
+    cta: 'Complete payment',
+  },
   queued: {
     headline: 'Your Xenium is queued',
     lead: 'Production starts shortly. We will reach out if we need any final assets.',

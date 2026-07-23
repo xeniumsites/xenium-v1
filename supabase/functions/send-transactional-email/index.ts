@@ -148,50 +148,61 @@ Deno.serve(async (req) => {
   // Create Supabase client with service role (bypasses RLS)
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-  // 2. Check suppression list (fail-closed: if we can't verify, don't send)
-  const { data: suppressed, error: suppressionError } = await supabase
-    .from('suppressed_emails')
-    .select('id')
-    .eq('email', effectiveRecipient.toLowerCase())
-    .maybeSingle()
-
-  if (suppressionError) {
-    console.error('Suppression check failed — refusing to send', {
-      error: suppressionError,
-      effectiveRecipient,
-    })
-    return new Response(
-      JSON.stringify({ error: 'Failed to verify suppression status' }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    )
-  }
-
-  if (suppressed) {
-    // Log the suppressed attempt
-    await supabase.from('email_send_log').insert({
-      message_id: messageId,
-      template_name: templateName,
-      recipient_email: effectiveRecipient,
-      status: 'suppressed',
-    })
-
-    console.log('Email suppressed', { effectiveRecipient, templateName })
-    return new Response(
-      JSON.stringify({ success: false, reason: 'email_suppressed' }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    )
-  }
-
-  // 3. Get or create unsubscribe token (one token per email address)
+  // Transactional/security emails (payment links, receipts, login OTPs) must
+  // ALWAYS reach the customer — they are not marketing mail. For them we skip
+  // both the suppression check and the one-click unsubscribe token, so a prior
+  // unsubscribe/soft-bounce can never block a payment link or an OTP.
+  const isTransactional = template.transactional === true
   const normalizedEmail = effectiveRecipient.toLowerCase()
-  let unsubscribeToken: string
+  let unsubscribeToken: string | undefined
 
+  // 2. Check suppression list (fail-closed: if we can't verify, don't send).
+  //    Skipped entirely for transactional templates.
+  if (!isTransactional) {
+    const { data: suppressed, error: suppressionError } = await supabase
+      .from('suppressed_emails')
+      .select('id')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
+
+    if (suppressionError) {
+      console.error('Suppression check failed — refusing to send', {
+        error: suppressionError,
+        effectiveRecipient,
+      })
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify suppression status' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    if (suppressed) {
+      // Log the suppressed attempt
+      await supabase.from('email_send_log').insert({
+        message_id: messageId,
+        template_name: templateName,
+        recipient_email: effectiveRecipient,
+        status: 'suppressed',
+      })
+
+      console.log('Email suppressed', { effectiveRecipient, templateName })
+      return new Response(
+        JSON.stringify({ success: false, reason: 'email_suppressed' }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+  }
+
+  // 3. Get or create unsubscribe token (one token per email address).
+  //    Transactional templates get no unsubscribe token (and therefore no
+  //    List-Unsubscribe header in process-email-queue).
+  if (!isTransactional) {
   // Check for existing token for this email
   const { data: existingToken, error: tokenLookupError } = await supabase
     .from('email_unsubscribe_tokens')
@@ -304,6 +315,7 @@ Deno.serve(async (req) => {
       }
     )
   }
+  } // end if (!isTransactional) — unsubscribe token block
 
   // 4. Render React Email template to HTML and plain text
   const html = await renderAsync(

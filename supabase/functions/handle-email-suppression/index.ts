@@ -57,8 +57,8 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Invalid signature' }, 401)
   }
 
-  // Only bounce/complaint events lead to suppression — everything else
-  // (delivered, opened, clicked, ...) is not suppression-relevant here.
+  // Only bounce/complaint events are relevant here — everything else
+  // (delivered, opened, clicked, ...) is ignored.
   // Unsubscribes are handled separately by handle-email-unsubscribe, which
   // writes to suppressed_emails directly via our own token flow.
   const reason: 'bounce' | 'complaint' | null =
@@ -81,37 +81,52 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
   const normalizedEmail = recipientEmail.toLowerCase()
 
-  // 1. Upsert to suppressed_emails (idempotent — safe for redelivery retries)
-  const { error: suppressError } = await supabase
-    .from('suppressed_emails')
-    .upsert(
-      {
-        email: normalizedEmail,
-        reason,
-        metadata: event.data.bounce ?? null,
-      },
-      { onConflict: 'email' },
-    )
+  // Only PERMANENT (hard) bounces should suppress an address. Transient bounces
+  // (mailbox full, greylisting, temporary DNS) are recoverable — suppressing on
+  // them would permanently block a valid customer from all transactional mail.
+  // Complaints always suppress. suppressed_emails is append-only with no removal
+  // path, so we must be conservative about what we add to it.
+  const bounceType = event.data.bounce?.type ?? ''
+  const isPermanentBounce = reason === 'bounce' && /permanent/i.test(bounceType)
+  const shouldSuppress = reason === 'complaint' || isPermanentBounce
 
-  if (suppressError) {
-    console.error('Failed to upsert suppressed email', {
-      error: suppressError,
-      email_redacted: normalizedEmail[0] + '***@' + normalizedEmail.split('@')[1],
-    })
-    return jsonResponse({ error: 'Failed to write suppression' }, 500)
+  // 1. Upsert to suppressed_emails only for permanent bounces / complaints.
+  if (shouldSuppress) {
+    const { error: suppressError } = await supabase
+      .from('suppressed_emails')
+      .upsert(
+        {
+          email: normalizedEmail,
+          reason,
+          metadata: event.data.bounce ?? null,
+        },
+        { onConflict: 'email' },
+      )
+
+    if (suppressError) {
+      console.error('Failed to upsert suppressed email', {
+        error: suppressError,
+        email_redacted: normalizedEmail[0] + '***@' + normalizedEmail.split('@')[1],
+      })
+      return jsonResponse({ error: 'Failed to write suppression' }, 500)
+    }
   }
 
-  // 2. Append a new log entry for the suppression event (never update existing rows)
-  const sendLogStatus = reason === 'bounce' ? 'bounced' : 'complained'
+  // 2. Append a log entry for the event (never update existing rows). Transient
+  // bounces are logged but not suppressed.
+  const sendLogStatus =
+    reason === 'complaint' ? 'complained' : isPermanentBounce ? 'bounced' : 'soft_bounced'
   const sendLogMessage =
-    reason === 'bounce'
-      ? 'Permanent bounce — email address is invalid or rejected'
-      : 'Spam complaint — recipient marked email as spam'
+    reason === 'complaint'
+      ? 'Spam complaint — recipient marked email as spam'
+      : isPermanentBounce
+        ? `Permanent bounce (${bounceType}) — address invalid or rejected`
+        : `Transient bounce (${bounceType || 'unspecified'}) — not suppressed`
 
   const { error: insertError } = await supabase
     .from('email_send_log')
     .insert({
-      message_id: event.data.message_id ?? null,
+      message_id: event.data.email_id ?? event.data.message_id ?? null,
       template_name: 'system',
       recipient_email: normalizedEmail,
       status: sendLogStatus,
@@ -120,15 +135,16 @@ Deno.serve(async (req) => {
     })
 
   if (insertError) {
-    // Non-fatal — log and continue. The suppression was already recorded.
+    // Non-fatal — log and continue. The suppression (if any) was already recorded.
     console.warn('Failed to insert email_send_log', { error: insertError })
   }
 
   console.log('Suppression processed', {
     email_redacted: normalizedEmail[0] + '***@' + normalizedEmail.split('@')[1],
     reason,
+    suppressed: shouldSuppress,
     type: event.type,
   })
 
-  return jsonResponse({ success: true })
+  return jsonResponse({ success: true, suppressed: shouldSuppress })
 })
